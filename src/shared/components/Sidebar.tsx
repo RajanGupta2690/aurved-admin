@@ -212,33 +212,35 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     <aside
       className={`
         fixed lg:static inset-y-0 left-0 z-50
-        w-64 bg-white border-r border-warm-200 
+        w-64 bg-white border-r border-neutral-200 
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         h-screen overflow-y-auto flex flex-col
+        shadow-2xl lg:shadow-none
       `}
     >
       {/* Close button for mobile */}
       <button
         onClick={onClose}
-        className="lg:hidden absolute top-4 right-4 p-2 rounded-lg hover:bg-warm-100 text-charcoal-600"
+        className="lg:hidden absolute top-4 right-4 p-2 rounded-xl hover:bg-neutral-100 text-neutral-600 transition-colors"
       >
         <X size={20} />
       </button>
 
-      {/* Logo and Institution */}
-      <div className="p-6 border-b border-warm-200">
+      {/* Logo and Institution - Premium Branding */}
+      <div className="p-6 border-b border-neutral-200 bg-gradient-to-br from-white to-primary-50/30">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+          <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary-500/30">
             A
           </div>
           <div>
-            <h1 className="text-xl font-bold text-charcoal-950">AURVED</h1>
+            <h1 className="text-xl font-bold gradient-text">AURVED</h1>
+            <p className="text-xs text-neutral-500 font-medium">School Admin</p>
           </div>
         </div>
-        <div className="mt-3">
-          <p className="text-sm text-charcoal-600 font-medium">Sunrise International School</p>
-          <p className="text-xs text-charcoal-500 mt-0.5">Mumbai, Maharashtra</p>
+        <div className="mt-4 p-3 bg-white rounded-xl border border-neutral-200 shadow-sm">
+          <p className="text-sm text-neutral-700 font-semibold">Sunrise International</p>
+          <p className="text-xs text-neutral-500 mt-0.5">Mumbai, Maharashtra</p>
         </div>
       </div>
 
@@ -247,15 +249,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {navigationItems.map(item => renderNavItem(item))}
       </nav>
 
-      {/* User Profile */}
-      <div className="p-4 border-t border-warm-200">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-semibold">
+      {/* User Profile - Premium */}
+      <div className="p-4 border-t border-neutral-200 bg-gradient-to-br from-white to-primary-50/20">
+        <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-neutral-200 shadow-sm hover:shadow-md transition-all cursor-pointer">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-lg">
             RK
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-charcoal-900 truncate">Rajesh Kumar</p>
-            <p className="text-xs text-charcoal-500">Principal</p>
+            <p className="text-sm font-semibold text-neutral-900 truncate">Rajesh Kumar</p>
+            <p className="text-xs text-neutral-500">Principal</p>
           </div>
         </div>
       </div>
