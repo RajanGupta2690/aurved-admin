@@ -35,18 +35,25 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
       
-      {/* Modal */}
-      <div className={`relative bg-white rounded-xl shadow-2xl w-full ${sizeClasses[size]} mx-4 max-h-[90vh] flex flex-col`}>
+      {/* Modal - Full screen on mobile, centered on larger screens */}
+      <div className={`
+        relative bg-white w-full
+        rounded-t-2xl sm:rounded-xl shadow-2xl
+        ${sizeClasses[size]} 
+        max-h-[95vh] sm:max-h-[90vh]
+        flex flex-col
+        animate-slide-up sm:animate-fade-in
+      `}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-warm-200">
-          <h2 className="text-xl font-semibold text-charcoal-950">{title}</h2>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-warm-200">
+          <h2 className="text-lg sm:text-xl font-semibold text-charcoal-950">{title}</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-warm-100 rounded-lg transition-colors"
@@ -56,7 +63,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
         </div>
         
         {/* Content */}
-        <div className="overflow-y-auto flex-1 px-6 py-4">
+        <div className="overflow-y-auto flex-1 px-4 sm:px-6 py-3 sm:py-4">
           {children}
         </div>
       </div>

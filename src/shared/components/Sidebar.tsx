@@ -20,6 +20,7 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
+  X,
 } from 'lucide-react';
 
 interface NavItem {
@@ -139,7 +140,12 @@ const navigationItems: NavItem[] = [
   },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation();
   const [expandedItems, setExpandedItems] = useState<string[]>(['academics']);
 
@@ -191,6 +197,7 @@ export default function Sidebar() {
       <Link
         key={item.id}
         to={item.path || '#'}
+        onClick={onClose}
         className={`sidebar-item ${isActive(item.path) ? 'sidebar-item-active' : ''} ${
           level > 0 ? 'pl-8' : ''
         }`}
@@ -202,7 +209,23 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-white border-r border-warm-200 h-screen overflow-y-auto flex flex-col">
+    <aside
+      className={`
+        fixed lg:static inset-y-0 left-0 z-50
+        w-64 bg-white border-r border-warm-200 
+        transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        h-screen overflow-y-auto flex flex-col
+      `}
+    >
+      {/* Close button for mobile */}
+      <button
+        onClick={onClose}
+        className="lg:hidden absolute top-4 right-4 p-2 rounded-lg hover:bg-warm-100 text-charcoal-600"
+      >
+        <X size={20} />
+      </button>
+
       {/* Logo and Institution */}
       <div className="p-6 border-b border-warm-200">
         <div className="flex items-center gap-3 mb-4">
