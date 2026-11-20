@@ -20,7 +20,7 @@
 }
 
 @layer components {
-  /* Premium Buttons */
+  /* Premium Buttons - ORIGINAL COPPER */
   .btn-primary {
     @apply bg-primary-500 text-white rounded-xl px-4 py-2.5 font-medium 
            shadow-lg shadow-primary-500/30 
@@ -30,16 +30,16 @@
   }
   
   .btn-secondary {
-    @apply bg-white text-neutral-700 rounded-xl px-4 py-2.5 font-medium
-           border border-neutral-300 shadow-sm
-           hover:bg-neutral-50 hover:border-neutral-400 hover:shadow
+    @apply bg-white text-charcoal-700 rounded-xl px-4 py-2.5 font-medium
+           border border-warm-300 shadow-sm
+           hover:bg-warm-50 hover:border-warm-400 hover:shadow
            active:scale-95
            transition-all duration-200;
   }
   
   .btn-ghost {
-    @apply text-neutral-700 rounded-xl px-4 py-2.5 font-medium
-           hover:bg-neutral-100 active:scale-95
+    @apply text-charcoal-700 rounded-xl px-4 py-2.5 font-medium
+           hover:bg-warm-100 active:scale-95
            transition-all duration-200;
   }
   
@@ -51,10 +51,10 @@
            transition-all duration-200;
   }
 
-  /* Premium Cards */
+  /* Premium Cards - ORIGINAL COLORS */
   .card {
     @apply bg-white rounded-2xl p-4 md:p-6
-           border border-neutral-200
+           border border-warm-200
            shadow-card hover:shadow-card-hover
            transition-all duration-300;
   }
@@ -65,12 +65,12 @@
            active:scale-[0.98];
   }
 
-  /* Premium Inputs */
+  /* Premium Inputs - ORIGINAL COLORS */
   .input {
     @apply w-full px-4 py-2.5 rounded-xl
-           border border-neutral-300 bg-white
-           text-neutral-900 placeholder:text-neutral-400
-           focus:border-primary-500 focus:ring-4 focus:ring-primary-50
+           border border-warm-300 bg-white
+           text-charcoal-900 placeholder:text-charcoal-400
+           focus:border-primary-500 focus:ring-4 focus:ring-primary-100
            transition-all duration-200 outline-none;
   }
   
@@ -78,19 +78,17 @@
     @apply border-danger-500 focus:border-danger-500 focus:ring-danger-50;
   }
 
-  /* Sidebar Styling */
+  /* Sidebar Styling - ORIGINAL COPPER */
   .sidebar-item {
     @apply flex items-center gap-3 px-4 py-2.5 rounded-xl
-           text-neutral-600 font-medium
+           text-charcoal-600 font-medium
            hover:bg-primary-50 hover:text-primary-600
            active:scale-95
            transition-all duration-200 cursor-pointer;
   }
   
   .sidebar-item-active {
-    @apply bg-gradient-to-r from-primary-50 to-primary-100 
-           text-primary-600 font-semibold
-           shadow-sm border-l-4 border-primary-500 pl-3;
+    @apply bg-primary-50 text-primary-600 font-semibold;
   }
 
   /* Badge Styling */

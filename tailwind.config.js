@@ -7,26 +7,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Professional Brand Colors - More Premium
+        // Original Copper/Warm Brown - RESTORED
         primary: {
-          50: '#fef6f3',
-          100: '#fdeee8',
-          200: '#fbd5c7',
-          300: '#f8bca6',
-          400: '#f49364',
-          500: '#f06a22',  // Main Brand Orange
-          600: '#d85f1f',
-          700: '#b44f1a',
-          800: '#904015',
-          900: '#763411',
+          50: '#fdf8f6',
+          100: '#f2e8e5',
+          200: '#eaddd7',
+          300: '#e0cec7',
+          400: '#d2bab0',
+          500: '#c08968',  // Main Copper
+          600: '#b67554',
+          700: '#a05a3c',
+          800: '#8b4513',
+          900: '#5d2e0d',
         },
+        // Kept for compatibility
         secondary: {
           50: '#f0f9ff',
           100: '#e0f2fe',
           200: '#bae6fd',
           300: '#7dd3fc',
           400: '#38bdf8',
-          500: '#0ea5e9',  // Accent Blue
+          500: '#0ea5e9',
           600: '#0284c7',
           700: '#0369a1',
           800: '#075985',
@@ -68,7 +69,30 @@ export default {
           800: '#991b1b',
           900: '#7f1d1d',
         },
-        // Neutral Grays - Professional
+        // Original Charcoal/Gray - RESTORED
+        charcoal: {
+          50: '#f6f6f6',
+          100: '#e7e7e7',
+          200: '#d1d1d1',
+          300: '#b0b0b0',
+          400: '#888888',
+          500: '#6d6d6d',
+          600: '#5d5d5d',
+          700: '#4f4f4f',
+          800: '#454545',
+          900: '#3d3d3d',
+          950: '#262626',
+        },
+        // Original Warm Beige - RESTORED
+        warm: {
+          50: '#fafaf9',
+          100: '#f5f5f4',
+          200: '#e7e5e4',
+          300: '#d6d3d1',
+          400: '#a8a29e',
+          500: '#78716c',
+        },
+        // Alias for neutral (for new components)
         neutral: {
           50: '#fafaf9',
           100: '#f5f5f4',
@@ -87,9 +111,9 @@ export default {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       boxShadow: {
-        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+        'card': '0 2px 8px rgba(0, 0, 0, 0.08)',
         'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        'lg-colored': '0 10px 25px -5px rgba(240, 106, 34, 0.15)',
+        'lg-colored': '0 10px 25px -5px rgba(192, 137, 104, 0.15)',
       },
       borderRadius: {
         'lg': '12px',
