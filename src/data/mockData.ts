@@ -1,0 +1,538 @@
+import type { 
+  Institution, 
+  AcademicSession, 
+  Class, 
+  Section, 
+  Student, 
+  Parent, 
+  Teacher,
+  User,
+  Enquiry,
+  Application,
+  Attendance,
+  Fee,
+  Examination,
+  Homework,
+  Notice
+} from '../types';
+
+// Current User
+export const currentUser: User = {
+  id: 'user-1',
+  name: 'Rajesh Kumar',
+  email: 'rajesh.kumar@aurved.edu',
+  role: 'principal',
+  institutionId: 'inst-1',
+  permissions: ['*'],
+  avatar: undefined,
+};
+
+// Institution
+export const currentInstitution: Institution = {
+  id: 'inst-1',
+  name: 'Sunrise International School',
+  type: 'school',
+  address: '123, Education Lane, Knowledge Park, Mumbai, Maharashtra - 400001',
+  contact: '+91 98765 43210',
+  email: 'info@sunriseschool.edu',
+  enabledModules: [
+    'dashboard',
+    'admission',
+    'students',
+    'parents',
+    'academics',
+    'attendance',
+    'timetable',
+    'examination',
+    'fees',
+    'staff',
+    'homework',
+    'communication',
+    'transport',
+    'library',
+    'inventory',
+    'reports',
+    'settings',
+  ],
+};
+
+// Academic Sessions
+export const academicSessions: AcademicSession[] = [
+  {
+    id: 'session-1',
+    name: '2024-2025',
+    startDate: '2024-04-01',
+    endDate: '2025-03-31',
+    isCurrent: true,
+  },
+  {
+    id: 'session-2',
+    name: '2023-2024',
+    startDate: '2023-04-01',
+    endDate: '2024-03-31',
+    isCurrent: false,
+  },
+];
+
+// Classes
+export const classes: Class[] = [
+  {
+    id: 'class-1',
+    name: 'Class 1',
+    academicSessionId: 'session-1',
+    sections: [
+      { id: 'sec-1-a', name: 'A', classId: 'class-1', capacity: 30, classTeacherId: 'teacher-1' },
+      { id: 'sec-1-b', name: 'B', classId: 'class-1', capacity: 30, classTeacherId: 'teacher-2' },
+    ],
+  },
+  {
+    id: 'class-2',
+    name: 'Class 2',
+    academicSessionId: 'session-1',
+    sections: [
+      { id: 'sec-2-a', name: 'A', classId: 'class-2', capacity: 30, classTeacherId: 'teacher-3' },
+      { id: 'sec-2-b', name: 'B', classId: 'class-2', capacity: 30, classTeacherId: 'teacher-4' },
+    ],
+  },
+  {
+    id: 'class-3',
+    name: 'Class 3',
+    academicSessionId: 'session-1',
+    sections: [
+      { id: 'sec-3-a', name: 'A', classId: 'class-3', capacity: 35, classTeacherId: 'teacher-5' },
+      { id: 'sec-3-b', name: 'B', classId: 'class-3', capacity: 35 },
+    ],
+  },
+  {
+    id: 'class-4',
+    name: 'Class 4',
+    academicSessionId: 'session-1',
+    sections: [
+      { id: 'sec-4-a', name: 'A', classId: 'class-4', capacity: 35 },
+    ],
+  },
+  {
+    id: 'class-5',
+    name: 'Class 5',
+    academicSessionId: 'session-1',
+    sections: [
+      { id: 'sec-5-a', name: 'A', classId: 'class-5', capacity: 35 },
+    ],
+  },
+];
+
+// Parents
+export const parents: Parent[] = [
+  {
+    id: 'parent-1',
+    fatherName: 'Amit Sharma',
+    fatherPhone: '+91 98765 11111',
+    fatherEmail: 'amit.sharma@email.com',
+    fatherOccupation: 'Business Owner',
+    motherName: 'Priya Sharma',
+    motherPhone: '+91 98765 22222',
+    motherEmail: 'priya.sharma@email.com',
+    motherOccupation: 'Teacher',
+    address: '45, Green Valley, Mumbai - 400001',
+    studentIds: ['student-1'],
+  },
+  {
+    id: 'parent-2',
+    fatherName: 'Suresh Patel',
+    fatherPhone: '+91 98765 33333',
+    fatherEmail: 'suresh.patel@email.com',
+    fatherOccupation: 'Software Engineer',
+    motherName: 'Meena Patel',
+    motherPhone: '+91 98765 44444',
+    motherEmail: 'meena.patel@email.com',
+    motherOccupation: 'Doctor',
+    address: '78, Palm Heights, Mumbai - 400002',
+    studentIds: ['student-2'],
+  },
+  {
+    id: 'parent-3',
+    fatherName: 'Ravi Kumar',
+    fatherPhone: '+91 98765 55555',
+    fatherEmail: 'ravi.kumar@email.com',
+    fatherOccupation: 'Bank Manager',
+    motherName: 'Sunita Kumar',
+    motherPhone: '+91 98765 66666',
+    motherOccupation: 'Homemaker',
+    address: '12, Rose Garden, Mumbai - 400003',
+    studentIds: ['student-3', 'student-4'],
+  },
+];
+
+// Students
+export const students: Student[] = [
+  {
+    id: 'student-1',
+    admissionNumber: 'SUN/2024/001',
+    firstName: 'Aarav',
+    lastName: 'Sharma',
+    fullName: 'Aarav Sharma',
+    dateOfBirth: '2018-05-15',
+    gender: 'male',
+    bloodGroup: 'O+',
+    address: '45, Green Valley, Mumbai - 400001',
+    city: 'Mumbai',
+    state: 'Maharashtra',
+    pincode: '400001',
+    phone: '+91 98765 11111',
+    admissionDate: '2024-04-01',
+    academicSessionId: 'session-1',
+    classId: 'class-1',
+    sectionId: 'sec-1-a',
+    rollNumber: '1',
+    status: 'active',
+    parentId: 'parent-1',
+  },
+  {
+    id: 'student-2',
+    admissionNumber: 'SUN/2024/002',
+    firstName: 'Diya',
+    lastName: 'Patel',
+    fullName: 'Diya Patel',
+    dateOfBirth: '2018-08-22',
+    gender: 'female',
+    bloodGroup: 'B+',
+    address: '78, Palm Heights, Mumbai - 400002',
+    city: 'Mumbai',
+    state: 'Maharashtra',
+    pincode: '400002',
+    phone: '+91 98765 33333',
+    admissionDate: '2024-04-01',
+    academicSessionId: 'session-1',
+    classId: 'class-1',
+    sectionId: 'sec-1-a',
+    rollNumber: '2',
+    status: 'active',
+    parentId: 'parent-2',
+  },
+  {
+    id: 'student-3',
+    admissionNumber: 'SUN/2024/003',
+    firstName: 'Arjun',
+    lastName: 'Kumar',
+    fullName: 'Arjun Kumar',
+    dateOfBirth: '2017-03-10',
+    gender: 'male',
+    bloodGroup: 'A+',
+    address: '12, Rose Garden, Mumbai - 400003',
+    city: 'Mumbai',
+    state: 'Maharashtra',
+    pincode: '400003',
+    phone: '+91 98765 55555',
+    admissionDate: '2024-04-01',
+    academicSessionId: 'session-1',
+    classId: 'class-2',
+    sectionId: 'sec-2-a',
+    rollNumber: '1',
+    status: 'active',
+    parentId: 'parent-3',
+  },
+  {
+    id: 'student-4',
+    admissionNumber: 'SUN/2024/004',
+    firstName: 'Ananya',
+    lastName: 'Kumar',
+    fullName: 'Ananya Kumar',
+    dateOfBirth: '2019-11-05',
+    gender: 'female',
+    bloodGroup: 'A+',
+    address: '12, Rose Garden, Mumbai - 400003',
+    city: 'Mumbai',
+    state: 'Maharashtra',
+    pincode: '400003',
+    phone: '+91 98765 55555',
+    admissionDate: '2024-04-01',
+    academicSessionId: 'session-1',
+    classId: 'class-1',
+    sectionId: 'sec-1-b',
+    rollNumber: '1',
+    status: 'active',
+    parentId: 'parent-3',
+  },
+];
+
+// Teachers
+export const teachers: Teacher[] = [
+  {
+    id: 'teacher-1',
+    employeeId: 'EMP001',
+    firstName: 'Priya',
+    lastName: 'Desai',
+    fullName: 'Priya Desai',
+    email: 'priya.desai@sunriseschool.edu',
+    phone: '+91 98765 77777',
+    dateOfBirth: '1985-06-15',
+    gender: 'female',
+    joiningDate: '2020-06-01',
+    qualification: 'M.Ed, B.Ed',
+    experience: 8,
+    departmentId: 'dept-1',
+    designationId: 'desig-1',
+    subjects: ['English', 'Hindi'],
+    address: 'Mumbai',
+    status: 'active',
+  },
+  {
+    id: 'teacher-2',
+    employeeId: 'EMP002',
+    firstName: 'Vikram',
+    lastName: 'Singh',
+    fullName: 'Vikram Singh',
+    email: 'vikram.singh@sunriseschool.edu',
+    phone: '+91 98765 88888',
+    dateOfBirth: '1982-09-20',
+    gender: 'male',
+    joiningDate: '2018-04-01',
+    qualification: 'M.Sc, B.Ed',
+    experience: 12,
+    departmentId: 'dept-2',
+    designationId: 'desig-2',
+    subjects: ['Mathematics', 'Science'],
+    address: 'Mumbai',
+    status: 'active',
+  },
+  {
+    id: 'teacher-3',
+    employeeId: 'EMP003',
+    firstName: 'Neha',
+    lastName: 'Reddy',
+    fullName: 'Neha Reddy',
+    email: 'neha.reddy@sunriseschool.edu',
+    phone: '+91 98765 99999',
+    dateOfBirth: '1990-02-28',
+    gender: 'female',
+    joiningDate: '2022-06-15',
+    qualification: 'M.A, B.Ed',
+    experience: 4,
+    departmentId: 'dept-1',
+    designationId: 'desig-3',
+    subjects: ['Social Studies', 'English'],
+    address: 'Mumbai',
+    status: 'active',
+  },
+];
+
+// Enquiries
+export const enquiries: Enquiry[] = [
+  {
+    id: 'enq-1',
+    studentName: 'Rohan Mehta',
+    parentName: 'Kiran Mehta',
+    parentPhone: '+91 98765 12121',
+    parentEmail: 'kiran.mehta@email.com',
+    classId: 'class-1',
+    enquiryDate: '2024-11-01',
+    status: 'new',
+    followUpDate: '2024-11-20',
+    remarks: 'Interested in admission for next session',
+  },
+  {
+    id: 'enq-2',
+    studentName: 'Sara Khan',
+    parentName: 'Ahmed Khan',
+    parentPhone: '+91 98765 23232',
+    parentEmail: 'ahmed.khan@email.com',
+    classId: 'class-2',
+    enquiryDate: '2024-11-05',
+    status: 'contacted',
+    followUpDate: '2024-11-22',
+    remarks: 'Parent visited school campus',
+  },
+];
+
+// Applications
+export const applications: Application[] = [
+  {
+    id: 'app-1',
+    applicationNumber: 'APP/2024/001',
+    studentName: 'Ishaan Verma',
+    dateOfBirth: '2018-07-10',
+    gender: 'male',
+    classId: 'class-1',
+    parentName: 'Rajiv Verma',
+    parentPhone: '+91 98765 34343',
+    parentEmail: 'rajiv.verma@email.com',
+    applicationDate: '2024-11-10',
+    status: 'under_review',
+    documents: [
+      {
+        id: 'doc-1',
+        name: 'Birth Certificate',
+        type: 'pdf',
+        url: '/documents/birth-cert.pdf',
+        verified: true,
+        verifiedBy: 'admission-officer-1',
+        verifiedDate: '2024-11-12',
+      },
+      {
+        id: 'doc-2',
+        name: 'Transfer Certificate',
+        type: 'pdf',
+        url: '/documents/tc.pdf',
+        verified: false,
+      },
+    ],
+  },
+];
+
+// Attendance (Today's data)
+export const attendanceRecords: Attendance[] = [
+  {
+    id: 'att-1',
+    studentId: 'student-1',
+    date: '2024-11-19',
+    status: 'present',
+    markedBy: 'teacher-1',
+    markedAt: '2024-11-19T09:00:00',
+  },
+  {
+    id: 'att-2',
+    studentId: 'student-2',
+    date: '2024-11-19',
+    status: 'present',
+    markedBy: 'teacher-1',
+    markedAt: '2024-11-19T09:00:00',
+  },
+  {
+    id: 'att-3',
+    studentId: 'student-3',
+    date: '2024-11-19',
+    status: 'absent',
+    markedBy: 'teacher-3',
+    markedAt: '2024-11-19T09:00:00',
+    remarks: 'Medical leave',
+  },
+  {
+    id: 'att-4',
+    studentId: 'student-4',
+    date: '2024-11-19',
+    status: 'present',
+    markedBy: 'teacher-2',
+    markedAt: '2024-11-19T09:00:00',
+  },
+];
+
+// Fees
+export const fees: Fee[] = [
+  {
+    id: 'fee-1',
+    studentId: 'student-1',
+    academicSessionId: 'session-1',
+    totalAmount: 50000,
+    paidAmount: 35000,
+    pendingAmount: 15000,
+    dueDate: '2024-12-31',
+    status: 'partial',
+    installments: [
+      {
+        id: 'inst-1',
+        feeId: 'fee-1',
+        amount: 25000,
+        dueDate: '2024-06-30',
+        paidDate: '2024-06-15',
+        status: 'paid',
+      },
+      {
+        id: 'inst-2',
+        feeId: 'fee-1',
+        amount: 25000,
+        dueDate: '2024-12-31',
+        status: 'pending',
+      },
+    ],
+  },
+];
+
+// Examinations
+export const examinations: Examination[] = [
+  {
+    id: 'exam-1',
+    name: 'First Term Examination',
+    academicSessionId: 'session-1',
+    examType: 'midterm',
+    startDate: '2024-09-15',
+    endDate: '2024-09-25',
+    classIds: ['class-1', 'class-2', 'class-3'],
+    status: 'completed',
+  },
+  {
+    id: 'exam-2',
+    name: 'Second Term Examination',
+    academicSessionId: 'session-1',
+    examType: 'midterm',
+    startDate: '2024-12-10',
+    endDate: '2024-12-20',
+    classIds: ['class-1', 'class-2', 'class-3'],
+    status: 'upcoming',
+  },
+];
+
+// Homework
+export const homeworkList: Homework[] = [
+  {
+    id: 'hw-1',
+    title: 'English Essay Writing',
+    description: 'Write an essay on "My School" (200 words)',
+    classId: 'class-1',
+    sectionId: 'sec-1-a',
+    subjectId: 'sub-1',
+    teacherId: 'teacher-1',
+    assignedDate: '2024-11-15',
+    dueDate: '2024-11-22',
+    status: 'active',
+  },
+  {
+    id: 'hw-2',
+    title: 'Math Practice Problems',
+    description: 'Solve exercises 1.1 to 1.5 from textbook page 25',
+    classId: 'class-2',
+    sectionId: 'sec-2-a',
+    subjectId: 'sub-2',
+    teacherId: 'teacher-2',
+    assignedDate: '2024-11-16',
+    dueDate: '2024-11-23',
+    status: 'active',
+  },
+];
+
+// Notices
+export const notices: Notice[] = [
+  {
+    id: 'notice-1',
+    title: 'Winter Break Announcement',
+    description: 'School will remain closed for winter break from December 24 to January 5',
+    publishDate: '2024-11-15',
+    expiryDate: '2024-12-24',
+    targetAudience: 'all',
+    priority: 'high',
+    publishedBy: 'user-1',
+    status: 'published',
+  },
+  {
+    id: 'notice-2',
+    title: 'Parent-Teacher Meeting',
+    description: 'PTM scheduled for November 30, 2024 from 10 AM to 2 PM',
+    publishDate: '2024-11-10',
+    expiryDate: '2024-11-30',
+    targetAudience: 'parents',
+    classIds: ['class-1', 'class-2'],
+    priority: 'medium',
+    publishedBy: 'user-1',
+    status: 'published',
+  },
+];
+
+// Dashboard Stats
+export const dashboardStats = {
+  totalStudents: students.length,
+  totalTeachers: teachers.length,
+  totalStaff: 45,
+  presentToday: attendanceRecords.filter(a => a.status === 'present').length,
+  absentToday: attendanceRecords.filter(a => a.status === 'absent').length,
+  pendingFees: fees.reduce((sum, f) => sum + f.pendingAmount, 0),
+  feesCollected: fees.reduce((sum, f) => sum + f.paidAmount, 0),
+};

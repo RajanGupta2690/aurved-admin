@@ -1,0 +1,241 @@
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  UserPlus,
+  Users,
+  UsersRound,
+  BookOpen,
+  ClipboardCheck,
+  Calendar,
+  FileText,
+  DollarSign,
+  GraduationCap,
+  BookMarked,
+  MessageSquare,
+  Bus,
+  Library,
+  Package,
+  BarChart3,
+  Settings,
+  ChevronDown,
+  ChevronRight,
+} from 'lucide-react';
+
+interface NavItem {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  path?: string;
+  children?: NavItem[];
+}
+
+const navigationItems: NavItem[] = [
+  {
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: <LayoutDashboard size={20} />,
+    path: '/',
+  },
+  {
+    id: 'admission',
+    label: 'Admissions',
+    icon: <UserPlus size={20} />,
+    path: '/admissions',
+  },
+  {
+    id: 'students',
+    label: 'Students',
+    icon: <Users size={20} />,
+    path: '/students',
+  },
+  {
+    id: 'parents',
+    label: 'Parents',
+    icon: <UsersRound size={20} />,
+    path: '/parents',
+  },
+  {
+    id: 'academics',
+    label: 'Academics',
+    icon: <BookOpen size={20} />,
+    children: [
+      { id: 'sessions', label: 'Academic Sessions', icon: null, path: '/academics/sessions' },
+      { id: 'classes', label: 'Classes', icon: null, path: '/academics/classes' },
+      { id: 'subjects', label: 'Subjects', icon: null, path: '/academics/subjects' },
+    ],
+  },
+  {
+    id: 'attendance',
+    label: 'Attendance',
+    icon: <ClipboardCheck size={20} />,
+    path: '/attendance',
+  },
+  {
+    id: 'timetable',
+    label: 'Timetable',
+    icon: <Calendar size={20} />,
+    path: '/timetable',
+  },
+  {
+    id: 'examination',
+    label: 'Examinations',
+    icon: <FileText size={20} />,
+    path: '/examinations',
+  },
+  {
+    id: 'fees',
+    label: 'Fees & Accounts',
+    icon: <DollarSign size={20} />,
+    path: '/fees',
+  },
+  {
+    id: 'staff',
+    label: 'Teachers & Staff',
+    icon: <GraduationCap size={20} />,
+    path: '/staff',
+  },
+  {
+    id: 'homework',
+    label: 'Homework',
+    icon: <BookMarked size={20} />,
+    path: '/homework',
+  },
+  {
+    id: 'communication',
+    label: 'Communication',
+    icon: <MessageSquare size={20} />,
+    path: '/communication',
+  },
+  {
+    id: 'transport',
+    label: 'Transport',
+    icon: <Bus size={20} />,
+    path: '/transport',
+  },
+  {
+    id: 'library',
+    label: 'Library',
+    icon: <Library size={20} />,
+    path: '/library',
+  },
+  {
+    id: 'inventory',
+    label: 'Inventory',
+    icon: <Package size={20} />,
+    path: '/inventory',
+  },
+  {
+    id: 'reports',
+    label: 'Reports',
+    icon: <BarChart3 size={20} />,
+    path: '/reports',
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
+    icon: <Settings size={20} />,
+    path: '/settings',
+  },
+];
+
+export default function Sidebar() {
+  const location = useLocation();
+  const [expandedItems, setExpandedItems] = useState<string[]>(['academics']);
+
+  const toggleExpand = (id: string) => {
+    setExpandedItems(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const isActive = (path?: string) => {
+    if (!path) return false;
+    return location.pathname === path;
+  };
+
+  const isParentActive = (item: NavItem) => {
+    if (item.path && isActive(item.path)) return true;
+    if (item.children) {
+      return item.children.some(child => isActive(child.path));
+    }
+    return false;
+  };
+
+  const renderNavItem = (item: NavItem, level: number = 0) => {
+    const hasChildren = item.children && item.children.length > 0;
+    const isExpanded = expandedItems.includes(item.id);
+    const active = isParentActive(item);
+
+    if (hasChildren) {
+      return (
+        <div key={item.id}>
+          <button
+            onClick={() => toggleExpand(item.id)}
+            className={`sidebar-item w-full ${active ? 'sidebar-item-active' : ''}`}
+          >
+            {item.icon}
+            <span className="flex-1 text-left">{item.label}</span>
+            {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          </button>
+          {isExpanded && (
+            <div className="ml-4 mt-1 space-y-1">
+              {item.children.map(child => renderNavItem(child, level + 1))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        key={item.id}
+        to={item.path || '#'}
+        className={`sidebar-item ${isActive(item.path) ? 'sidebar-item-active' : ''} ${
+          level > 0 ? 'pl-8' : ''
+        }`}
+      >
+        {item.icon && item.icon}
+        <span>{item.label}</span>
+      </Link>
+    );
+  };
+
+  return (
+    <aside className="w-64 bg-white border-r border-warm-200 h-screen overflow-y-auto flex flex-col">
+      {/* Logo and Institution */}
+      <div className="p-6 border-b border-warm-200">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+            A
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-charcoal-950">AURVED</h1>
+          </div>
+        </div>
+        <div className="mt-3">
+          <p className="text-sm text-charcoal-600 font-medium">Sunrise International School</p>
+          <p className="text-xs text-charcoal-500 mt-0.5">Mumbai, Maharashtra</p>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 p-4 space-y-1">
+        {navigationItems.map(item => renderNavItem(item))}
+      </nav>
+
+      {/* User Profile */}
+      <div className="p-4 border-t border-warm-200">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-semibold">
+            RK
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-charcoal-900 truncate">Rajesh Kumar</p>
+            <p className="text-xs text-charcoal-500">Principal</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
