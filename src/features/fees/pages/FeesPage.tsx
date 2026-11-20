@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import { DollarSign, Search, Download, Plus, Eye, CreditCard } from 'lucide-react';
 import { students, fees, classes } from '../../../data/mockData';
+import Modal from '../../../shared/components/Modal';
+import Toast from '../../../shared/components/Toast';
 
 export default function FeesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showCollectModal, setShowCollectModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedFeeRecord, setSelectedFeeRecord] = useState<any>(null);
+  const [toast, setToast] = useState({ show: false, type: 'success' as const, message: '' });
 
   const studentFeeData = students.map(student => {
     const studentFee = fees.find(f => f.studentId === student.id);
@@ -33,6 +39,23 @@ export default function FeesPage() {
     overdueCount: fees.filter(f => f.status === 'overdue').length,
   };
 
+  const handleCollectFee = (data: any) => {
+    console.log('Collecting fee:', data);
+    setShowCollectModal(false);
+    setSelectedFeeRecord(null);
+    setToast({ show: true, type: 'success', message: 'Payment collected successfully!' });
+  };
+
+  const handleViewDetails = (record: any) => {
+    setSelectedFeeRecord(record);
+    setShowViewModal(true);
+  };
+
+  const handleCollectPayment = (record: any) => {
+    setSelectedFeeRecord(record);
+    setShowCollectModal(true);
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -46,7 +69,10 @@ export default function FeesPage() {
             <Download size={20} />
             Export
           </button>
-          <button className="btn-primary flex items-center gap-2">
+          <button className="btn-primary flex items-center gap-2" onClick={() => {
+            setSelectedFeeRecord(null);
+            setShowCollectModal(true);
+          }}>
             <Plus size={20} />
             Collect Fee
           </button>
@@ -191,10 +217,18 @@ export default function FeesPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center justify-center gap-2">
-                      <button className="p-2 hover:bg-warm-100 rounded-lg transition-colors" title="View Details">
+                      <button 
+                        className="p-2 hover:bg-warm-100 rounded-lg transition-colors" 
+                        title="View Details"
+                        onClick={() => handleViewDetails({ student, fee, className, sectionName })}
+                      >
                         <Eye size={16} className="text-charcoal-600" />
                       </button>
-                      <button className="p-2 hover:bg-primary-50 rounded-lg transition-colors" title="Collect Payment">
+                      <button 
+                        className="p-2 hover:bg-primary-50 rounded-lg transition-colors" 
+                        title="Collect Payment"
+                        onClick={() => handleCollectPayment({ student, fee, className, sectionName })}
+                      >
                         <CreditCard size={16} className="text-primary-600" />
                       </button>
                     </div>
@@ -210,6 +244,311 @@ export default function FeesPage() {
             <p className="text-charcoal-500">No fee records found</p>
           </div>
         )}
+      </div>
+
+      {/* Collect Fee Modal */}
+      <Modal
+        isOpen={showCollectModal}
+        onClose={() => {
+          setShowCollectModal(false);
+          setSelectedFeeRecord(null);
+        }}
+        title={selectedFeeRecord ? `Collect Payment - ${selectedFeeRecord.student.fullName}` : 'Collect Fee'}
+      >
+        <FeeCollectionForm
+          feeRecord={selectedFeeRecord}
+          onSubmit={handleCollectFee}
+          onCancel={() => {
+            setShowCollectModal(false);
+            setSelectedFeeRecord(null);
+          }}
+        />
+      </Modal>
+
+      {/* View Details Modal */}
+      <Modal
+        isOpen={showViewModal}
+        onClose={() => {
+          setShowViewModal(false);
+          setSelectedFeeRecord(null);
+        }}
+        title="Fee Details"
+      >
+        {selectedFeeRecord && (
+          <FeeDetailsView
+            feeRecord={selectedFeeRecord}
+            onClose={() => {
+              setShowViewModal(false);
+              setSelectedFeeRecord(null);
+            }}
+          />
+        )}
+      </Modal>
+
+      {/* Toast Notification */}
+      <Toast
+        show={toast.show}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast({ ...toast, show: false })}
+      />
+    </div>
+  );
+}
+
+// Fee Collection Form Component
+function FeeCollectionForm({ feeRecord, onSubmit, onCancel }: any) {
+  const [formData, setFormData] = useState({
+    studentId: feeRecord?.student?.id || '',
+    admissionNumber: feeRecord?.student?.admissionNumber || '',
+    studentName: feeRecord?.student?.fullName || '',
+    className: feeRecord?.className || '',
+    amount: '',
+    paymentMode: 'cash',
+    transactionId: '',
+    paymentDate: new Date().toISOString().split('T')[0],
+    remarks: '',
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Student Info (if pre-selected) */}
+      {feeRecord && (
+        <div className="p-4 bg-warm-50 rounded-lg border border-warm-200">
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-charcoal-600">Student</p>
+              <p className="font-medium text-charcoal-900">{feeRecord.student.fullName}</p>
+            </div>
+            <div>
+              <p className="text-charcoal-600">Class</p>
+              <p className="font-medium text-charcoal-900">{feeRecord.className} - {feeRecord.sectionName}</p>
+            </div>
+            <div>
+              <p className="text-charcoal-600">Total Amount</p>
+              <p className="font-medium text-charcoal-900">₹{feeRecord.fee?.totalAmount?.toLocaleString() || '0'}</p>
+            </div>
+            <div>
+              <p className="text-charcoal-600">Pending Amount</p>
+              <p className="font-medium text-orange-600">₹{feeRecord.fee?.pendingAmount?.toLocaleString() || '0'}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Student Selection (if not pre-selected) */}
+      {!feeRecord && (
+        <>
+          <div>
+            <label className="label">Admission Number *</label>
+            <input
+              type="text"
+              className="input"
+              placeholder="Enter admission number"
+              value={formData.admissionNumber}
+              onChange={(e) => setFormData({ ...formData, admissionNumber: e.target.value })}
+              required
+            />
+          </div>
+          <div>
+            <label className="label">Student Name *</label>
+            <input
+              type="text"
+              className="input"
+              placeholder="Enter student name"
+              value={formData.studentName}
+              onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
+              required
+            />
+          </div>
+        </>
+      )}
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="label">Amount (₹) *</label>
+          <input
+            type="number"
+            className="input"
+            placeholder="Enter amount"
+            value={formData.amount}
+            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+            required
+            min="1"
+          />
+        </div>
+        <div>
+          <label className="label">Payment Mode *</label>
+          <select
+            className="input"
+            value={formData.paymentMode}
+            onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
+            required
+          >
+            <option value="cash">Cash</option>
+            <option value="online">Online Transfer</option>
+            <option value="card">Card</option>
+            <option value="cheque">Cheque</option>
+            <option value="upi">UPI</option>
+          </select>
+        </div>
+      </div>
+
+      {formData.paymentMode !== 'cash' && (
+        <div>
+          <label className="label">Transaction ID / Reference Number</label>
+          <input
+            type="text"
+            className="input"
+            placeholder="Enter transaction ID"
+            value={formData.transactionId}
+            onChange={(e) => setFormData({ ...formData, transactionId: e.target.value })}
+          />
+        </div>
+      )}
+
+      <div>
+        <label className="label">Payment Date *</label>
+        <input
+          type="date"
+          className="input"
+          value={formData.paymentDate}
+          onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
+          required
+        />
+      </div>
+
+      <div>
+        <label className="label">Remarks</label>
+        <textarea
+          className="input"
+          rows={3}
+          placeholder="Enter any additional notes"
+          value={formData.remarks}
+          onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+        />
+      </div>
+
+      <div className="flex justify-end gap-3 pt-4">
+        <button type="button" onClick={onCancel} className="btn-secondary">
+          Cancel
+        </button>
+        <button type="submit" className="btn-primary">
+          Collect Payment
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// Fee Details View Component
+function FeeDetailsView({ feeRecord, onClose }: any) {
+  const paymentHistory = [
+    {
+      id: 1,
+      date: '2024-04-15',
+      amount: 5000,
+      mode: 'online',
+      transactionId: 'TXN123456',
+      collectedBy: 'Admin User',
+    },
+    {
+      id: 2,
+      date: '2024-05-20',
+      amount: 3000,
+      mode: 'cash',
+      transactionId: 'CASH-001',
+      collectedBy: 'Admin User',
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Student Info */}
+      <div className="p-4 bg-warm-50 rounded-lg border border-warm-200">
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-charcoal-600">Student</p>
+            <p className="font-medium text-charcoal-900">{feeRecord.student.fullName}</p>
+          </div>
+          <div>
+            <p className="text-charcoal-600">Admission Number</p>
+            <p className="font-medium text-charcoal-900">{feeRecord.student.admissionNumber}</p>
+          </div>
+          <div>
+            <p className="text-charcoal-600">Class</p>
+            <p className="font-medium text-charcoal-900">{feeRecord.className} - {feeRecord.sectionName}</p>
+          </div>
+          <div>
+            <p className="text-charcoal-600">Status</p>
+            <span className={`badge ${
+              feeRecord.fee?.status === 'paid' ? 'badge-success' :
+              feeRecord.fee?.status === 'pending' ? 'badge-warning' :
+              feeRecord.fee?.status === 'partial' ? 'badge-info' :
+              'badge-error'
+            }`}>
+              {feeRecord.fee?.status || 'No Record'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Fee Summary */}
+      <div>
+        <h3 className="text-sm font-semibold text-charcoal-900 mb-3">Fee Summary</h3>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between py-2 border-b border-warm-200">
+            <span className="text-charcoal-600">Total Fee Amount</span>
+            <span className="font-semibold text-charcoal-900">
+              ₹{feeRecord.fee?.totalAmount?.toLocaleString() || '0'}
+            </span>
+          </div>
+          <div className="flex justify-between py-2 border-b border-warm-200">
+            <span className="text-charcoal-600">Paid Amount</span>
+            <span className="font-semibold text-emerald-600">
+              ₹{feeRecord.fee?.paidAmount?.toLocaleString() || '0'}
+            </span>
+          </div>
+          <div className="flex justify-between py-2">
+            <span className="text-charcoal-600">Pending Amount</span>
+            <span className="font-semibold text-orange-600">
+              ₹{feeRecord.fee?.pendingAmount?.toLocaleString() || '0'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Payment History */}
+      <div>
+        <h3 className="text-sm font-semibold text-charcoal-900 mb-3">Payment History</h3>
+        <div className="space-y-3">
+          {paymentHistory.map((payment) => (
+            <div key={payment.id} className="p-3 bg-warm-50 rounded-lg border border-warm-200">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <p className="text-sm font-medium text-charcoal-900">₹{payment.amount.toLocaleString()}</p>
+                  <p className="text-xs text-charcoal-600">{payment.date}</p>
+                </div>
+                <span className="badge badge-success">{payment.mode}</span>
+              </div>
+              <div className="text-xs text-charcoal-600 space-y-1">
+                <p>Transaction ID: {payment.transactionId}</p>
+                <p>Collected by: {payment.collectedBy}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-4">
+        <button onClick={onClose} className="btn-secondary">
+          Close
+        </button>
       </div>
     </div>
   );

@@ -7,6 +7,17 @@ import AdmissionsPage from '../features/admission/pages/AdmissionsPage';
 import AttendancePage from '../features/attendance/pages/AttendancePage';
 import FeesPage from '../features/fees/pages/FeesPage';
 import ExaminationsPage from '../features/examination/pages/ExaminationsPage';
+import ParentsPage from '../features/parents/pages/ParentsPage';
+import StaffPage from '../features/staff/pages/StaffPage';
+import HomeworkPage from '../features/homework/pages/HomeworkPage';
+import CommunicationPage from '../features/communication/pages/CommunicationPage';
+import TimetablePage from '../features/timetable/pages/TimetablePage';
+import LibraryPage from '../features/library/pages/LibraryPage';
+import TransportPage from '../features/transport/pages/TransportPage';
+import InventoryPage from '../features/inventory/pages/InventoryPage';
+import ReportsPage from '../features/reports/pages/ReportsPage';
+import SettingsPage from '../features/settings/pages/SettingsPage';
+import AcademicsPage from '../features/academics/pages/AcademicsPage';
 import PlaceholderPage from '../shared/components/PlaceholderPage';
 
 export const router = createBrowserRouter([
@@ -32,11 +43,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'parents',
-        element: <PlaceholderPage title="Parents" description="Parent management coming soon" />,
+        element: <ParentsPage />,
       },
       {
         path: 'academics/*',
-        element: <PlaceholderPage title="Academic Management" description="Academic configuration coming soon" />,
+        element: <AcademicsPage />,
       },
       {
         path: 'attendance',
@@ -44,7 +55,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'timetable',
-        element: <PlaceholderPage title="Timetable" description="Timetable management coming soon" />,
+        element: <TimetablePage />,
       },
       {
         path: 'examinations',
@@ -56,35 +67,35 @@ export const router = createBrowserRouter([
       },
       {
         path: 'staff',
-        element: <PlaceholderPage title="Teachers & Staff" description="Staff management coming soon" />,
+        element: <StaffPage />,
       },
       {
         path: 'homework',
-        element: <PlaceholderPage title="Homework" description="Homework management coming soon" />,
+        element: <HomeworkPage />,
       },
       {
         path: 'communication',
-        element: <PlaceholderPage title="Communication" description="Communication module coming soon" />,
+        element: <CommunicationPage />,
       },
       {
         path: 'transport',
-        element: <PlaceholderPage title="Transport" description="Transport management coming soon" />,
+        element: <TransportPage />,
       },
       {
         path: 'library',
-        element: <PlaceholderPage title="Library" description="Library management coming soon" />,
+        element: <LibraryPage />,
       },
       {
         path: 'inventory',
-        element: <PlaceholderPage title="Inventory" description="Inventory management coming soon" />,
+        element: <InventoryPage />,
       },
       {
         path: 'reports',
-        element: <PlaceholderPage title="Reports & Analytics" description="Reports module coming soon" />,
+        element: <ReportsPage />,
       },
       {
         path: 'settings',
-        element: <PlaceholderPage title="Settings" description="Settings module coming soon" />,
+        element: <SettingsPage />,
       },
     ],
   },

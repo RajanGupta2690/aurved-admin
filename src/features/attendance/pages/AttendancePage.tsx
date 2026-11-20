@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Calendar, Download, Save, Users } from 'lucide-react';
 import { classes, students, attendanceRecords } from '../../../data/mockData';
+import Toast from '../../../shared/components/Toast';
 
 export default function AttendancePage() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedClass, setSelectedClass] = useState('class-1');
   const [selectedSection, setSelectedSection] = useState('sec-1-a');
+  const [toast, setToast] = useState({ show: false, type: 'success' as const, message: '' });
 
   const selectedClassData = classes.find(c => c.id === selectedClass);
   const classStudents = students.filter(
@@ -33,6 +35,12 @@ export default function AttendancePage() {
         return acc;
       }, {} as Record<string, string>)
     );
+    setToast({ show: true, type: 'success', message: `All students marked as ${status}!` });
+  };
+
+  const handleSaveAttendance = () => {
+    console.log('Saving attendance:', attendance);
+    setToast({ show: true, type: 'success', message: 'Attendance saved successfully!' });
   };
 
   const presentCount = Object.values(attendance).filter(s => s === 'present').length;
@@ -54,7 +62,7 @@ export default function AttendancePage() {
             <Download size={20} />
             Export
           </button>
-          <button className="btn-primary flex items-center gap-2">
+          <button className="btn-primary flex items-center gap-2" onClick={handleSaveAttendance}>
             <Save size={20} />
             Save Attendance
           </button>
@@ -265,6 +273,14 @@ export default function AttendancePage() {
           </div>
         )}
       </div>
+
+      {/* Toast Notification */}
+      <Toast
+        show={toast.show}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast({ ...toast, show: false })}
+      />
     </div>
   );
 }
