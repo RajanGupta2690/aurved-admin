@@ -7,6 +7,10 @@ interface DeleteConfirmationProps {
   title: string;
   message: string;
   itemName?: string;
+  /** Text of the confirm button. Defaults to "Delete". */
+  confirmLabel?: string;
+  /** Note under the item name. Defaults to the irreversible warning. Pass an empty string to hide it. */
+  warning?: string;
 }
 
 export default function DeleteConfirmation({ 
@@ -15,7 +19,9 @@ export default function DeleteConfirmation({
   onConfirm, 
   title, 
   message,
-  itemName 
+  itemName,
+  confirmLabel = 'Delete',
+  warning = 'This action cannot be undone.',
 }: DeleteConfirmationProps) {
   if (!isOpen) return null;
 
@@ -46,9 +52,11 @@ export default function DeleteConfirmation({
                 "{itemName}"
               </p>
             )}
-            <p className="text-xs text-red-600 mt-3">
-              This action cannot be undone.
-            </p>
+            {warning && (
+              <p className="text-xs text-red-600 mt-3">
+                {warning}
+              </p>
+            )}
           </div>
         </div>
         
@@ -63,7 +71,7 @@ export default function DeleteConfirmation({
             onClick={handleConfirm}
             className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg transition-colors"
           >
-            Delete
+            {confirmLabel}
           </button>
         </div>
       </div>

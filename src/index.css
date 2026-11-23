@@ -21,11 +21,12 @@
 
 @layer components {
   /* Premium Buttons - ORIGINAL COPPER */
+  /* Filled buttons use primary-700 so white text reaches 5.2:1 (WCAG AA). The brand copper stays on the logo and accents. */
   .btn-primary {
-    @apply bg-primary-500 text-white rounded-xl px-4 py-2.5 font-medium 
-           shadow-lg shadow-primary-500/30 
-           hover:bg-primary-600 hover:shadow-xl hover:shadow-primary-500/40
-           active:scale-95
+    @apply bg-primary-700 text-white rounded-xl px-4 py-2.5 font-medium 
+           shadow-lg shadow-primary-700/25 
+           hover:bg-primary-800 hover:shadow-xl hover:shadow-primary-700/30
+           active:scale-95 disabled:opacity-50 disabled:pointer-events-none
            transition-all duration-200;
   }
   
@@ -33,21 +34,21 @@
     @apply bg-white text-charcoal-700 rounded-xl px-4 py-2.5 font-medium
            border border-warm-300 shadow-sm
            hover:bg-warm-50 hover:border-warm-400 hover:shadow
-           active:scale-95
+           active:scale-95 disabled:opacity-50 disabled:pointer-events-none
            transition-all duration-200;
   }
   
   .btn-ghost {
     @apply text-charcoal-700 rounded-xl px-4 py-2.5 font-medium
-           hover:bg-warm-100 active:scale-95
+           hover:bg-warm-100 active:scale-95 disabled:opacity-50 disabled:pointer-events-none
            transition-all duration-200;
   }
   
   .btn-danger {
-    @apply bg-danger-500 text-white rounded-xl px-4 py-2.5 font-medium
-           shadow-lg shadow-danger-500/30
-           hover:bg-danger-600 hover:shadow-xl hover:shadow-danger-500/40
-           active:scale-95
+    @apply bg-danger-600 text-white rounded-xl px-4 py-2.5 font-medium
+           shadow-lg shadow-danger-600/25
+           hover:bg-danger-700 hover:shadow-xl hover:shadow-danger-700/30
+           active:scale-95 disabled:opacity-50 disabled:pointer-events-none
            transition-all duration-200;
   }
 
@@ -69,8 +70,9 @@
   .input {
     @apply w-full px-4 py-2.5 rounded-xl
            border border-warm-300 bg-white
-           text-charcoal-900 placeholder:text-charcoal-400
-           focus:border-primary-500 focus:ring-4 focus:ring-primary-100
+           text-charcoal-900 placeholder:text-charcoal-500
+           focus:border-primary-700 focus:ring-4 focus:ring-primary-200
+           disabled:bg-warm-100 disabled:text-charcoal-500 disabled:cursor-not-allowed
            transition-all duration-200 outline-none;
   }
   
@@ -82,13 +84,13 @@
   .sidebar-item {
     @apply flex items-center gap-3 px-4 py-2.5 rounded-xl
            text-charcoal-600 font-medium
-           hover:bg-primary-50 hover:text-primary-600
+           hover:bg-primary-50 hover:text-primary-700
            active:scale-95
            transition-all duration-200 cursor-pointer;
   }
   
   .sidebar-item-active {
-    @apply bg-primary-50 text-primary-600 font-semibold;
+    @apply bg-primary-50 text-primary-700 font-semibold;
   }
 
   /* Badge Styling */
@@ -194,9 +196,36 @@ html {
   @apply bg-primary-100 text-primary-900;
 }
 
-/* Focus Visible */
+/* Focus Visible: 2px solid primary-700 (5.2:1 on white) so keyboard focus is always visible */
 :focus-visible {
-  @apply outline-none ring-4 ring-primary-100 ring-offset-2;
+  outline: 2px solid #a05a3c;
+  outline-offset: 2px;
+}
+.input:focus-visible { outline: none; }
+
+/* Skip link for keyboard users */
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: #a05a3c;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.skip-link:focus { top: 0.75rem; }
+
+/* Respect the reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Animations */
@@ -243,4 +272,12 @@ html {
   body {
     @apply bg-white;
   }
+}
+
+/* Same as the media query above, switched on from Profile and preferences */
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }

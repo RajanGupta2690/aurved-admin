@@ -1,6 +1,8 @@
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, User, Users } from 'lucide-react';
-import { students, parents, classes, attendanceRecords, fees } from '../../../data/mockData';
+import { students, classes, attendanceRecords, fees } from '../../../data/mockData';
+import StudentParentSummary from '../components/StudentParentSummary';
+import StudentParentsPanel from '../components/StudentParentsPanel';
 import { useState } from 'react';
 
 export default function StudentDetailPage() {
@@ -8,7 +10,6 @@ export default function StudentDetailPage() {
   const [activeTab, setActiveTab] = useState('overview');
   
   const student = students.find(s => s.id === id);
-  const parent = student ? parents.find(p => p.id === student.parentId) : null;
   const studentClass = student ? classes.find(c => c.id === student.classId) : null;
   const section = studentClass?.sections.find(s => s.id === student?.sectionId);
   const studentAttendance = attendanceRecords.filter(a => a.studentId === id);
@@ -189,25 +190,7 @@ export default function StudentDetailPage() {
                 </div>
               </div>
 
-              {parent && (
-                <div>
-                  <h3 className="font-semibold text-charcoal-950 mb-4">Parent/Guardian Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="p-4 bg-warm-50 rounded-lg">
-                      <p className="text-xs text-charcoal-500 mb-2">Father</p>
-                      <p className="font-medium text-charcoal-900">{parent.fatherName}</p>
-                      <p className="text-sm text-charcoal-600 mt-2">{parent.fatherPhone}</p>
-                      <p className="text-sm text-charcoal-600">{parent.fatherEmail}</p>
-                    </div>
-                    <div className="p-4 bg-warm-50 rounded-lg">
-                      <p className="text-xs text-charcoal-500 mb-2">Mother</p>
-                      <p className="font-medium text-charcoal-900">{parent.motherName}</p>
-                      <p className="text-sm text-charcoal-600 mt-2">{parent.motherPhone}</p>
-                      <p className="text-sm text-charcoal-600">{parent.motherEmail}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <StudentParentSummary student={student} onManage={() => setActiveTab('parent')} />
             </div>
           )}
 
@@ -260,58 +243,7 @@ export default function StudentDetailPage() {
             </div>
           )}
 
-          {activeTab === 'parent' && parent && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="font-semibold text-charcoal-950 mb-4">Father's Information</h3>
-                <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <dt className="text-sm text-charcoal-500">Name</dt>
-                    <dd className="text-sm text-charcoal-900 font-medium mt-1">{parent.fatherName}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm text-charcoal-500">Phone</dt>
-                    <dd className="text-sm text-charcoal-900 font-medium mt-1">{parent.fatherPhone}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm text-charcoal-500">Email</dt>
-                    <dd className="text-sm text-charcoal-900 font-medium mt-1">{parent.fatherEmail || 'N/A'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm text-charcoal-500">Occupation</dt>
-                    <dd className="text-sm text-charcoal-900 font-medium mt-1">{parent.fatherOccupation || 'N/A'}</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-charcoal-950 mb-4">Mother's Information</h3>
-                <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <dt className="text-sm text-charcoal-500">Name</dt>
-                    <dd className="text-sm text-charcoal-900 font-medium mt-1">{parent.motherName}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm text-charcoal-500">Phone</dt>
-                    <dd className="text-sm text-charcoal-900 font-medium mt-1">{parent.motherPhone || 'N/A'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm text-charcoal-500">Email</dt>
-                    <dd className="text-sm text-charcoal-900 font-medium mt-1">{parent.motherEmail || 'N/A'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm text-charcoal-500">Occupation</dt>
-                    <dd className="text-sm text-charcoal-900 font-medium mt-1">{parent.motherOccupation || 'N/A'}</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-charcoal-950 mb-4">Address</h3>
-                <p className="text-sm text-charcoal-900">{parent.address}</p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'parent' && <StudentParentsPanel student={student} />}
 
           {activeTab === 'fees' && (
             <div className="space-y-4">

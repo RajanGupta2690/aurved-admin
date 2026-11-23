@@ -1,44 +1,42 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Search, Plus, Phone, Mail, User, Users, MapPin, Briefcase } from 'lucide-react';
-import { parents, students } from '../../../data/mockData';
-import Modal from '../../../shared/components/Modal';
+import { students } from '../../../data/mockData';
+import { useFamily } from '../../../core/api/familyStore';
+import { parentDisplayName, parentFullLabel, searchParents } from '../../../core/api/familyLogic';
+import type { Parent } from '../../../types';
 import DeleteConfirmation from '../../../shared/components/DeleteConfirmation';
 import Toast from '../../../shared/components/Toast';
+import AddParentDialog from '../components/AddParentDialog';
+import ParentEditDialog from '../components/ParentEditDialog';
+
+type ToastState = { show: boolean; type: 'success' | 'error'; message: string };
 
 export default function ParentsPage() {
+  const { family, actions } = useFamily();
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [selectedParent, setSelectedParent] = useState<any>(null);
-  const [toast, setToast] = useState({ show: false, type: 'success' as const, message: '' });
+  const [showAdd, setShowAdd] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Parent | null>(null);
+  const [toast, setToast] = useState<ToastState>({ show: false, type: 'success', message: '' });
 
-  // Filter parents based on search
-  const filteredParents = parents.filter(parent => 
-    parent.fatherName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    parent.motherName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    parent.fatherPhone?.includes(searchTerm) ||
-    parent.motherPhone?.includes(searchTerm) ||
-    parent.fatherEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    parent.motherEmail?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const notify = (type: ToastState['type'], message: string) => setToast({ show: true, type, message });
 
-  // Get student names for a parent
-  const getStudentNames = (studentIds: string[]) => {
-    return studentIds
-      .map(id => students.find(s => s.id === id)?.fullName)
-      .filter(Boolean)
-      .join(', ');
-  };
+  const parents = family.parents;
+  const filteredParents = searchParents(family, searchTerm);
+  const editing = editId ? parents.find((parent) => parent.id === editId) : undefined;
 
-  const handleAdd = (data: any) => {
-    console.log('Adding parent:', data);
-    setShowAddModal(false);
-    setToast({ show: true, type: 'success', message: 'Parent added successfully!' });
-  };
-
-  const handleDelete = () => {
-    console.log('Deleting parent:', selectedParent);
-    setToast({ show: true, type: 'success', message: 'Parent deleted successfully!' });
+  // A record that still has children linked is never deleted from here.
+  const requestDelete = (parent: Parent) => {
+    if (parent.studentIds.length > 0) {
+      const count = parent.studentIds.length;
+      notify(
+        'error',
+        `${parentFullLabel(parent)} is linked to ${count} ${count === 1 ? 'student' : 'students'}. Remove the link on the student page first.`,
+      );
+      return;
+    }
+    setDeleteTarget(parent);
   };
 
   return (
@@ -51,7 +49,7 @@ export default function ParentsPage() {
             Manage parent information and communication
           </p>
         </div>
-        <button className="btn-primary flex items-center gap-2" onClick={() => setShowAddModal(true)}>
+        <button className="btn-primary flex items-center gap-2" onClick={() => setShowAdd(true)}>
           <Plus size={20} />
           Add Parent
         </button>
@@ -76,7 +74,7 @@ export default function ParentsPage() {
             </div>
           </div>
           <p className="text-2xl font-bold text-charcoal-950">
-            {parents.filter(p => p.fatherPhone || p.motherPhone).length}
+            {parents.filter(p => p.fatherPhone || p.motherPhone || p.guardianPhone).length}
           </p>
           <p className="text-sm text-charcoal-600">Verified Contacts</p>
         </div>
@@ -111,6 +109,7 @@ export default function ParentsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400" size={20} />
             <input
               type="text"
+              aria-label="Search parents"
               placeholder="Search by parent name, phone, or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -154,91 +153,121 @@ export default function ParentsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredParents.map((parent) => (
-                  <tr key={parent.id} className="hover:bg-warm-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <User size={16} className="text-blue-600" />
-                          <span className="font-medium text-charcoal-900">
-                            {parent.fatherName || 'N/A'}
-                          </span>
+                filteredParents.map((parent) => {
+                  const children = parent.studentIds
+                    .map((id) => students.find((student) => student.id === id))
+                    .filter((student): student is (typeof students)[number] => Boolean(student));
+                  return (
+                    <tr key={parent.id} className="hover:bg-warm-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="space-y-2">
+                          {parent.fatherName && (
+                            <div className="flex items-center gap-2">
+                              <User size={16} className="text-blue-600" />
+                              <span className="font-medium text-charcoal-900">{parent.fatherName}</span>
+                            </div>
+                          )}
+                          {parent.motherName && (
+                            <div className="flex items-center gap-2">
+                              <User size={16} className="text-pink-600" />
+                              <span className="font-medium text-charcoal-900">{parent.motherName}</span>
+                            </div>
+                          )}
+                          {parent.guardianName && (
+                            <div className="flex items-center gap-2">
+                              <User size={16} className="text-charcoal-500" />
+                              <span className="font-medium text-charcoal-900">
+                                {parent.guardianName}
+                                {parent.guardianRelation ? ` (${parent.guardianRelation})` : ''}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        {parent.motherName && (
-                          <div className="flex items-center gap-2">
-                            <User size={16} className="text-pink-600" />
-                            <span className="font-medium text-charcoal-900">
-                              {parent.motherName}
-                            </span>
-                          </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="space-y-1">
+                          {parent.fatherPhone && (
+                            <div className="flex items-center gap-2 text-sm text-charcoal-600">
+                              <Phone size={14} />
+                              {parent.fatherPhone}
+                            </div>
+                          )}
+                          {parent.fatherEmail && (
+                            <div className="flex items-center gap-2 text-sm text-charcoal-600">
+                              <Mail size={14} />
+                              {parent.fatherEmail}
+                            </div>
+                          )}
+                          {parent.motherPhone && parent.motherPhone !== parent.fatherPhone && (
+                            <div className="flex items-center gap-2 text-sm text-charcoal-600">
+                              <Phone size={14} />
+                              {parent.motherPhone}
+                            </div>
+                          )}
+                          {parent.guardianPhone && (
+                            <div className="flex items-center gap-2 text-sm text-charcoal-600">
+                              <Phone size={14} />
+                              {parent.guardianPhone}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="space-y-1">
+                          {parent.fatherOccupation && (
+                            <div className="flex items-center gap-2 text-sm text-charcoal-600">
+                              <Briefcase size={14} />
+                              {parent.fatherOccupation}
+                            </div>
+                          )}
+                          {parent.motherOccupation && (
+                            <div className="flex items-center gap-2 text-sm text-charcoal-600">
+                              <Briefcase size={14} />
+                              {parent.motherOccupation}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {children.length === 0 ? (
+                          <span className="text-sm text-warning-700">No student linked</span>
+                        ) : (
+                          <ul className="flex flex-col gap-1">
+                            {children.map((student) => (
+                              <li key={student.id} className="flex items-center gap-2 text-sm">
+                                <Users size={14} className="text-primary-600" />
+                                <Link to={`/students/${student.id}`} className="text-primary-700 hover:underline">
+                                  {student.fullName}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
                         )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="space-y-1">
-                        {parent.fatherPhone && (
-                          <div className="flex items-center gap-2 text-sm text-charcoal-600">
-                            <Phone size={14} />
-                            {parent.fatherPhone}
-                          </div>
-                        )}
-                        {parent.fatherEmail && (
-                          <div className="flex items-center gap-2 text-sm text-charcoal-600">
-                            <Mail size={14} />
-                            {parent.fatherEmail}
-                          </div>
-                        )}
-                        {parent.motherPhone && parent.motherPhone !== parent.fatherPhone && (
-                          <div className="flex items-center gap-2 text-sm text-charcoal-600">
-                            <Phone size={14} />
-                            {parent.motherPhone}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="space-y-1">
-                        {parent.fatherOccupation && (
-                          <div className="flex items-center gap-2 text-sm text-charcoal-600">
-                            <Briefcase size={14} />
-                            {parent.fatherOccupation}
-                          </div>
-                        )}
-                        {parent.motherOccupation && (
-                          <div className="flex items-center gap-2 text-sm text-charcoal-600">
-                            <Briefcase size={14} />
-                            {parent.motherOccupation}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-sm text-charcoal-900">
-                        <Users size={14} className="text-primary-600" />
-                        {getStudentNames(parent.studentIds)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <button className="btn-ghost text-sm py-1 px-3">
-                          View
-                        </button>
-                        <button className="btn-ghost text-sm py-1 px-3">
-                          Edit
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setSelectedParent(parent);
-                            setShowDeleteConfirm(true);
-                          }}
-                          className="btn-ghost text-sm py-1 px-3 text-red-600"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <button className="btn-ghost text-sm py-1 px-3">
+                            View
+                          </button>
+                          <button
+                            onClick={() => setEditId(parent.id)}
+                            className="btn-ghost text-sm py-1 px-3"
+                            aria-label={`Edit ${parentFullLabel(parent)}`}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => requestDelete(parent)}
+                            className="btn-ghost text-sm py-1 px-3 text-red-600"
+                            aria-label={`Delete ${parentFullLabel(parent)}`}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -255,7 +284,7 @@ export default function ParentsPage() {
                 <MapPin size={18} className="text-primary-600 mt-1" />
                 <div className="flex-1">
                   <p className="font-medium text-charcoal-950 mb-1">
-                    {parent.fatherName || parent.motherName}
+                    {parentDisplayName(parent)}
                   </p>
                   <p className="text-sm text-charcoal-600">{parent.address}</p>
                 </div>
@@ -265,98 +294,33 @@ export default function ParentsPage() {
         </div>
       </div>
 
-      {/* Modals */}
-      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Add Parent" size="lg">
-        <ParentForm onSubmit={handleAdd} onCancel={() => setShowAddModal(false)} />
-      </Modal>
+      {/* Dialogs */}
+      {showAdd && (
+        <AddParentDialog onClose={() => setShowAdd(false)} onSaved={(message) => notify('success', message)} />
+      )}
+      {editing && (
+        <ParentEditDialog parent={editing} onClose={() => setEditId(null)} onSaved={(message) => notify('success', message)} />
+      )}
 
       <DeleteConfirmation
-        isOpen={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={handleDelete}
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          actions.remove(deleteTarget.id);
+          notify('success', `${parentFullLabel(deleteTarget)} deleted.`);
+        }}
         title="Delete Parent"
-        message="Are you sure you want to delete this parent record?"
-        itemName={selectedParent?.fatherName || selectedParent?.motherName}
+        message="This parent record has no student linked. Delete it?"
+        itemName={deleteTarget ? parentFullLabel(deleteTarget) : undefined}
       />
 
       <Toast
-        isOpen={toast.show}
-        onClose={() => setToast({ ...toast, show: false })}
+        show={toast.show}
+        onClose={() => setToast((previous) => ({ ...previous, show: false }))}
         type={toast.type}
         message={toast.message}
       />
     </div>
-  );
-}
-
-function ParentForm({ onSubmit, onCancel }: any) {
-  const [data, setData] = useState({
-    fatherName: '',
-    fatherPhone: '',
-    fatherEmail: '',
-    fatherOccupation: '',
-    motherName: '',
-    motherPhone: '',
-    motherEmail: '',
-    motherOccupation: '',
-    address: '',
-  });
-
-  return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(data); }} className="space-y-6">
-      <div className="space-y-4">
-        <h3 className="font-semibold text-charcoal-950">Father's Information</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Father's Name *</label>
-            <input required value={data.fatherName} onChange={(e) => setData({...data, fatherName: e.target.value})} className="input" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Phone *</label>
-            <input required type="tel" value={data.fatherPhone} onChange={(e) => setData({...data, fatherPhone: e.target.value})} className="input" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Email</label>
-            <input type="email" value={data.fatherEmail} onChange={(e) => setData({...data, fatherEmail: e.target.value})} className="input" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Occupation</label>
-            <input value={data.fatherOccupation} onChange={(e) => setData({...data, fatherOccupation: e.target.value})} className="input" />
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="font-semibold text-charcoal-950">Mother's Information</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Mother's Name</label>
-            <input value={data.motherName} onChange={(e) => setData({...data, motherName: e.target.value})} className="input" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Phone</label>
-            <input type="tel" value={data.motherPhone} onChange={(e) => setData({...data, motherPhone: e.target.value})} className="input" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Email</label>
-            <input type="email" value={data.motherEmail} onChange={(e) => setData({...data, motherEmail: e.target.value})} className="input" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Occupation</label>
-            <input value={data.motherOccupation} onChange={(e) => setData({...data, motherOccupation: e.target.value})} className="input" />
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-2">Address *</label>
-        <textarea required value={data.address} onChange={(e) => setData({...data, address: e.target.value})} className="input" rows={3} />
-      </div>
-
-      <div className="flex gap-3 pt-4 border-t">
-        <button type="button" onClick={onCancel} className="btn-secondary flex-1">Cancel</button>
-        <button type="submit" className="btn-primary flex-1">Add Parent</button>
-      </div>
-    </form>
   );
 }

@@ -1,104 +1,54 @@
 import { createBrowserRouter } from 'react-router-dom';
-import MainLayout from '../shared/layouts/MainLayout';
-import DashboardPage from '../features/dashboard/pages/DashboardPage';
-import StudentsListPage from '../features/students/pages/StudentsListPage';
-import StudentDetailPage from '../features/students/pages/StudentDetailPage';
-import AdmissionsPage from '../features/admission/pages/AdmissionsPage';
-import AttendancePage from '../features/attendance/pages/AttendancePage';
-import FeesPage from '../features/fees/pages/FeesPage';
-import ExaminationsPage from '../features/examination/pages/ExaminationsPage';
-import ParentsPage from '../features/parents/pages/ParentsPage';
-import StaffPage from '../features/staff/pages/StaffPage';
-import HomeworkPage from '../features/homework/pages/HomeworkPage';
-import CommunicationPage from '../features/communication/pages/CommunicationPage';
-import TimetablePage from '../features/timetable/pages/TimetablePage';
-import LibraryPage from '../features/library/pages/LibraryPage';
-import TransportPage from '../features/transport/pages/TransportPage';
-import InventoryPage from '../features/inventory/pages/InventoryPage';
-import ReportsPage from '../features/reports/pages/ReportsPage';
-import SettingsPage from '../features/settings/pages/SettingsPage';
-import AcademicsPage from '../features/academics/pages/AcademicsPage';
-import PlaceholderPage from '../shared/components/PlaceholderPage';
+import type { RouteObject } from 'react-router-dom';
+import { LEGACY_PATHS, ROUTES } from '../core/routing/registry';
+import type { RouteDef } from '../core/routing/registry';
+import PortalProvider from '../core/context/PortalProvider';
+import Shell from '../shared/layout/Shell';
+import RouteGate from './RouteGate';
+import { LegacyRedirect, RootRedirect } from './redirects';
+import ErrorPage from '../features/portal/pages/ErrorPage';
+import NotFoundPage from '../features/portal/pages/NotFoundPage';
 
-export const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <MainLayout />,
-    children: [
-      {
-        index: true,
-        element: <DashboardPage />,
-      },
-      {
-        path: 'admissions',
-        element: <AdmissionsPage />,
-      },
-      {
-        path: 'students',
-        element: <StudentsListPage />,
-      },
-      {
-        path: 'students/:id',
-        element: <StudentDetailPage />,
-      },
-      {
-        path: 'parents',
-        element: <ParentsPage />,
-      },
-      {
-        path: 'academics/*',
-        element: <AcademicsPage />,
-      },
-      {
-        path: 'attendance',
-        element: <AttendancePage />,
-      },
-      {
-        path: 'timetable',
-        element: <TimetablePage />,
-      },
-      {
-        path: 'examinations',
-        element: <ExaminationsPage />,
-      },
-      {
-        path: 'fees',
-        element: <FeesPage />,
-      },
-      {
-        path: 'staff',
-        element: <StaffPage />,
-      },
-      {
-        path: 'homework',
-        element: <HomeworkPage />,
-      },
-      {
-        path: 'communication',
-        element: <CommunicationPage />,
-      },
-      {
-        path: 'transport',
-        element: <TransportPage />,
-      },
-      {
-        path: 'library',
-        element: <LibraryPage />,
-      },
-      {
-        path: 'inventory',
-        element: <InventoryPage />,
-      },
-      {
-        path: 'reports',
-        element: <ReportsPage />,
-      },
-      {
-        path: 'settings',
-        element: <SettingsPage />,
-      },
-    ],
-  },
-], {
-  basename: '/aurved-admin'
-});
+/** Routes are built from the registry, so a screen cannot exist without its feature and permission. */
+function children(scope: 'inst' | 'org'): RouteObject[] {
+  const defs = ROUTES.filter((def: RouteDef) => def.scope === scope || def.scope === 'both');
+  const mapped: RouteObject[] = defs.map((def) =>
+    def.path === '' ? { index: true, element: <RouteGate def={def} /> } : { path: def.path, element: <RouteGate def={def} /> },
+  );
+  mapped.push({ path: '*', element: <NotFoundPage /> });
+  return mapped;
+}
+
+export const router = createBrowserRouter(
+  [
+    { path: '/', element: <RootRedirect />, errorElement: <ErrorPage /> },
+    {
+      path: '/inst/:instId',
+      element: (
+        <PortalProvider scope="inst">
+          <Shell />
+        </PortalProvider>
+      ),
+      errorElement: <ErrorPage />,
+      children: children('inst'),
+    },
+    {
+      path: '/org/:orgId',
+      element: (
+        <PortalProvider scope="org">
+          <Shell />
+        </PortalProvider>
+      ),
+      errorElement: <ErrorPage />,
+      children: children('org'),
+    },
+    {
+      path: '/setup/institution',
+      lazy: async () => ({ Component: (await import('../features/organization/pages/SetupInstitutionPage')).default }),
+      errorElement: <ErrorPage />,
+    },
+    ...LEGACY_PATHS.map((path): RouteObject => ({ path, element: <LegacyRedirect />, errorElement: <ErrorPage /> })),
+    { path: '*', element: <NotFoundPage standalone /> },
+  ],
+  { basename: '/aurved-admin' },
+);
