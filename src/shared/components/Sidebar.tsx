@@ -22,6 +22,8 @@ import {
   ChevronRight,
   X,
 } from 'lucide-react';
+import { useAuth } from '../../core/auth/AuthContext';
+import { Permission } from '../../core/auth/types';
 
 interface NavItem {
   id: string;
@@ -29,6 +31,7 @@ interface NavItem {
   icon: React.ReactNode;
   path?: string;
   children?: NavItem[];
+  requiredPermissions?: Permission[]; // Permissions needed to see this item
 }
 
 const navigationItems: NavItem[] = [
@@ -37,33 +40,56 @@ const navigationItems: NavItem[] = [
     label: 'Dashboard',
     icon: <LayoutDashboard size={20} />,
     path: '/',
+    requiredPermissions: [Permission.VIEW_DASHBOARD],
   },
   {
     id: 'admission',
     label: 'Admissions',
     icon: <UserPlus size={20} />,
     path: '/admissions',
+    requiredPermissions: [Permission.VIEW_ADMISSIONS],
   },
   {
     id: 'students',
     label: 'Students',
     icon: <Users size={20} />,
     path: '/students',
+    requiredPermissions: [Permission.VIEW_STUDENTS],
   },
   {
     id: 'parents',
     label: 'Parents',
     icon: <UsersRound size={20} />,
     path: '/parents',
+    requiredPermissions: [Permission.VIEW_PARENTS],
   },
   {
     id: 'academics',
     label: 'Academics',
     icon: <BookOpen size={20} />,
+    requiredPermissions: [Permission.VIEW_ACADEMICS],
     children: [
-      { id: 'sessions', label: 'Academic Sessions', icon: null, path: '/academics/sessions' },
-      { id: 'classes', label: 'Classes', icon: null, path: '/academics/classes' },
-      { id: 'subjects', label: 'Subjects', icon: null, path: '/academics/subjects' },
+      { 
+        id: 'sessions', 
+        label: 'Academic Sessions', 
+        icon: null, 
+        path: '/academics/sessions',
+        requiredPermissions: [Permission.VIEW_ACADEMICS],
+      },
+      { 
+        id: 'classes', 
+        label: 'Classes', 
+        icon: null, 
+        path: '/academics/classes',
+        requiredPermissions: [Permission.VIEW_ACADEMICS],
+      },
+      { 
+        id: 'subjects', 
+        label: 'Subjects', 
+        icon: null, 
+        path: '/academics/subjects',
+        requiredPermissions: [Permission.VIEW_ACADEMICS],
+      },
     ],
   },
   {
@@ -71,72 +97,84 @@ const navigationItems: NavItem[] = [
     label: 'Attendance',
     icon: <ClipboardCheck size={20} />,
     path: '/attendance',
+    requiredPermissions: [Permission.VIEW_ATTENDANCE],
   },
   {
     id: 'timetable',
     label: 'Timetable',
     icon: <Calendar size={20} />,
     path: '/timetable',
+    requiredPermissions: [Permission.VIEW_TIMETABLE],
   },
   {
     id: 'examination',
     label: 'Examinations',
     icon: <FileText size={20} />,
     path: '/examinations',
+    requiredPermissions: [Permission.VIEW_EXAMINATIONS],
   },
   {
     id: 'fees',
     label: 'Fees & Accounts',
     icon: <DollarSign size={20} />,
     path: '/fees',
+    requiredPermissions: [Permission.VIEW_FEES],
   },
   {
     id: 'staff',
     label: 'Teachers & Staff',
     icon: <GraduationCap size={20} />,
     path: '/staff',
+    requiredPermissions: [Permission.VIEW_STAFF],
   },
   {
     id: 'homework',
     label: 'Homework',
     icon: <BookMarked size={20} />,
     path: '/homework',
+    requiredPermissions: [Permission.VIEW_HOMEWORK],
   },
   {
     id: 'communication',
     label: 'Communication',
     icon: <MessageSquare size={20} />,
     path: '/communication',
+    requiredPermissions: [Permission.VIEW_NOTICES],
   },
   {
     id: 'transport',
     label: 'Transport',
     icon: <Bus size={20} />,
     path: '/transport',
+    requiredPermissions: [Permission.VIEW_TRANSPORT],
   },
   {
     id: 'library',
     label: 'Library',
     icon: <Library size={20} />,
     path: '/library',
+    requiredPermissions: [Permission.VIEW_LIBRARY],
   },
   {
     id: 'inventory',
     label: 'Inventory',
     icon: <Package size={20} />,
     path: '/inventory',
+    requiredPermissions: [Permission.VIEW_INVENTORY],
   },
   {
     id: 'reports',
     label: 'Reports',
     icon: <BarChart3 size={20} />,
     path: '/reports',
+    requiredPermissions: [Permission.VIEW_REPORTS],
   },
   {
     id: 'settings',
     label: 'Settings',
     icon: <Settings size={20} />,
     path: '/settings',
+    requiredPermissions: [Permission.VIEW_SETTINGS],
   },
 ];
 
@@ -147,7 +185,41 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation();
+  const { user, hasAnyPermission } = useAuth();
   const [expandedItems, setExpandedItems] = useState<string[]>(['academics']);
+
+  // Filter navigation items based on user permissions
+  const filterNavItems = (items: NavItem[]): NavItem[] => {
+    return items.filter(item => {
+      // If no permissions required, show the item
+      if (!item.requiredPermissions || item.requiredPermissions.length === 0) {
+        return true;
+      }
+
+      // Check if user has any of the required permissions
+      const hasPermission = hasAnyPermission(item.requiredPermissions);
+      
+      // If item has children, filter them too
+      if (item.children && hasPermission) {
+        const filteredChildren = filterNavItems(item.children);
+        // Only show parent if it has visible children
+        return filteredChildren.length > 0;
+      }
+
+      return hasPermission;
+    }).map(item => {
+      // Filter children recursively
+      if (item.children) {
+        return {
+          ...item,
+          children: filterNavItems(item.children),
+        };
+      }
+      return item;
+    });
+  };
+
+  const visibleNavItems = filterNavItems(navigationItems);
 
   const toggleExpand = (id: string) => {
     setExpandedItems(prev =>
@@ -246,18 +318,22 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1">
-        {navigationItems.map(item => renderNavItem(item))}
+        {visibleNavItems.map(item => renderNavItem(item))}
       </nav>
 
-      {/* User Profile - Original */}
+      {/* User Profile - Show current role */}
       <div className="p-4 border-t border-warm-200">
         <div className="flex items-center gap-3 p-3 bg-warm-50 rounded-xl border border-warm-200 hover:shadow-sm transition-all cursor-pointer">
           <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-lg">
-            RK
+            {user?.name?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-charcoal-900 truncate">Rajesh Kumar</p>
-            <p className="text-xs text-charcoal-500">Principal</p>
+            <p className="text-sm font-semibold text-charcoal-900 truncate">
+              {user?.name || 'User'}
+            </p>
+            <p className="text-xs text-charcoal-500 capitalize">
+              {user?.role?.replace('_', ' ') || 'Guest'}
+            </p>
           </div>
         </div>
       </div>
