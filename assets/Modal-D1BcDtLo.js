@@ -1,0 +1,8 @@
+import{Yt as e}from"./index-BS7IG0Mr.js";import{a as t,r as n,t as r}from"./jsx-runtime-XYpbrY7N.js";var i=t(n(),1),a=r();function o({isOpen:t,onClose:n,title:r,children:o,size:s=`md`}){return(0,i.useEffect)(()=>{let e=e=>{e.key===`Escape`&&n()};return t&&(document.addEventListener(`keydown`,e),document.body.style.overflow=`hidden`),()=>{document.removeEventListener(`keydown`,e),document.body.style.overflow=`unset`}},[t,n]),t?(0,a.jsxs)(`div`,{className:`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4`,children:[(0,a.jsx)(`div`,{className:`absolute inset-0 bg-black/50 backdrop-blur-sm`,onClick:n}),(0,a.jsxs)(`div`,{className:`
+        relative bg-white w-full
+        rounded-t-2xl sm:rounded-xl shadow-2xl
+        ${{sm:`max-w-md`,md:`max-w-2xl`,lg:`max-w-4xl`,xl:`max-w-6xl`}[s]} 
+        max-h-[95vh] sm:max-h-[90vh]
+        flex flex-col
+        animate-slide-up sm:animate-fade-in
+      `,children:[(0,a.jsxs)(`div`,{className:`flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-warm-200`,children:[(0,a.jsx)(`h2`,{className:`text-lg sm:text-xl font-semibold text-charcoal-950`,children:r}),(0,a.jsx)(`button`,{onClick:n,className:`p-2 hover:bg-warm-100 rounded-lg transition-colors`,children:(0,a.jsx)(e,{size:20,className:`text-charcoal-600`})})]}),(0,a.jsx)(`div`,{className:`overflow-y-auto flex-1 px-4 sm:px-6 py-3 sm:py-4`,children:o})]})]}):null}export{o as t};
