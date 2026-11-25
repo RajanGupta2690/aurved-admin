@@ -8,6 +8,11 @@ export default function ErrorPage() {
   const error = useRouteError();
   useEffect(() => {
     console.error('Portal error:', error);
+    // A file that no longer exists after a new release: one fresh reload fixes it.
+    const message = error instanceof Error ? error.message : String(error);
+    if (/dynamically imported module|importing a module script failed|failed to fetch/i.test(message)) {
+      (window as unknown as { __aurvedReload?: () => boolean }).__aurvedReload?.();
+    }
   }, [error]);
 
   return (

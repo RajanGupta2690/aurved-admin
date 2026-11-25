@@ -24,9 +24,68 @@
       }(window.location))
     </script>
     <!-- End Single Page Apps for GitHub Pages -->
+    <!-- Boot guard. A phone may keep an old index.html for ten minutes after a new release, and the old files are gone by then.
+         If a file of the app fails to load, reload once with a fresh address. If that does not help, say so instead of showing a white page. -->
+    <script type="text/javascript">
+      (function () {
+        var KEY = 'aurved.boot.reloaded';
+        var lastError = '';
+        function reloadFresh() {
+          try {
+            var last = Number(sessionStorage.getItem(KEY) || 0);
+            if (Date.now() - last < 60000) return false;
+            sessionStorage.setItem(KEY, String(Date.now()));
+            var u = new URL(window.location.href);
+            u.searchParams.set('_r', String(Date.now()));
+            window.location.replace(u.toString());
+            return true;
+          } catch (e) {
+            return false;
+          }
+        }
+        window.__aurvedReload = reloadFresh;
+        window.addEventListener('error', function (e) {
+          var t = e && e.target;
+          if (t && t !== window && (t.tagName === 'SCRIPT' || t.tagName === 'LINK') && /\/assets\//.test(t.src || t.href || '')) {
+            if (!reloadFresh()) lastError = 'A file of the portal could not be loaded: ' + (t.src || t.href);
+            return;
+          }
+          if (e && e.message) lastError = e.message;
+        }, true);
+        window.addEventListener('unhandledrejection', function (e) {
+          var r = e && e.reason;
+          lastError = String((r && r.message) || r || 'Unknown error');
+        });
+        function showFallback(reason) {
+          var root = document.getElementById('root');
+          if (!root || root.children.length > 0) return;
+          root.innerHTML = '<div style="max-width:28rem;margin:12vh auto;padding:1.5rem;font-family:system-ui,sans-serif;color:#262626;text-align:center">' +
+            '<h1 style="font-size:1.25rem;margin:0 0 .75rem">The portal could not start</h1>' +
+            '<p id="boot-reason" style="margin:0 0 1rem;color:#4f4f4f;line-height:1.5"></p>' +
+            '<button id="boot-reload" style="padding:.7rem 1.2rem;border-radius:.75rem;border:0;background:#a05a3c;color:#fff;font-size:1rem">Reload</button> ' +
+            '<button id="boot-clear" style="padding:.7rem 1.2rem;border-radius:.75rem;border:1px solid #d6d3d1;background:#fff;color:#262626;font-size:1rem">Clear saved demo data and reload</button>' +
+            '<p id="boot-detail" style="margin:1rem 0 0;font-size:.8rem;color:#6d6d6d;word-break:break-word"></p></div>';
+          document.getElementById('boot-reason').textContent = reason;
+          document.getElementById('boot-detail').textContent = lastError;
+          document.getElementById('boot-reload').onclick = function () { window.location.reload(); };
+          document.getElementById('boot-clear').onclick = function () {
+            try { Object.keys(localStorage).filter(function (k) { return k.indexOf('aurved.') === 0; }).forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
+            window.location.reload();
+          };
+        }
+        window.__aurvedFallback = showFallback;
+        if (!('noModule' in HTMLScriptElement.prototype)) {
+          document.addEventListener('DOMContentLoaded', function () { showFallback('This browser is too old for the portal. Please update it, or open the link in Chrome or Safari.'); });
+        }
+        window.addEventListener('load', function () {
+          setTimeout(function () { showFallback('The page did not finish loading. Check your internet connection and reload.'); }, 6000);
+        });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>The portal needs JavaScript. Please turn it on in your browser settings.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
