@@ -7,6 +7,8 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Soft beige page background. Cards and the sidebar stay white so content stands out and the page is easier on the eyes.
+        app: '#f4ece2',
         // Original Copper/Warm Brown - RESTORED
         primary: {
           50: '#fdf8f6',

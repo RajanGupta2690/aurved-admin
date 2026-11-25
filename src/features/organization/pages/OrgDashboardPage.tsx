@@ -14,7 +14,7 @@ import { BarChart, DonutChart, MetricCard } from '../../../shared/ui/Charts';
 import DataTable from '../../../shared/ui/DataTable';
 import type { Column } from '../../../shared/ui/DataTable';
 import { Alert, EmptyState } from '../../../shared/ui/Feedback';
-import { Card, PageHeader } from '../../../shared/ui/Layout';
+import { Card, HERO_BUTTON, HERO_BUTTON_QUIET, PageHero } from '../../../shared/ui/Layout';
 import { useOrgData, useWorld } from '../hooks';
 import { currentRegion } from '../../../core/i18n/format';
 
@@ -22,7 +22,7 @@ const UPDATED = 'Live, from this browser';
 
 /** ORG-01. Home of a group, trust or university administrator. */
 export default function OrgDashboardPage() {
-  const { org, path, can } = usePortal();
+  const { org, path, can, persona } = usePortal();
   const { institutions } = useOrgData();
   const world = useWorld();
   const inbox = useStore(inboxStore);
@@ -87,18 +87,24 @@ export default function OrgDashboardPage() {
 
   return (
     <PageContainer>
-      <PageHeader
-        title={org.name}
+      <PageHero
         eyebrow="ORG-01"
+        greeting={`Welcome back, ${persona.name}`}
+        title={org.name}
         description={`${ORG_TYPE_LABEL[org.type]}${org.governance ? `, ${org.governance} governance` : ''}. ${members.length} institutions.`}
-        breadcrumbs={[{ label: 'Organization' }, { label: org.name }]}
         actions={
-          can('org.institutions.create').allowed ? (
-            <Link to={path('institutions/new')} className="btn-primary inline-flex items-center gap-2">
-              <Plus size={18} aria-hidden="true" />
-              Add institution
+          <>
+            {can('org.institutions.create').allowed && (
+              <Link to={path('institutions/new')} className={HERO_BUTTON}>
+                <Plus size={16} aria-hidden="true" />
+                Add institution
+              </Link>
+            )}
+            <Link to={path('institutions')} className={HERO_BUTTON_QUIET}>
+              <Building2 size={16} aria-hidden="true" />
+              All institutions
             </Link>
-          ) : undefined
+          </>
         }
       />
 
@@ -112,19 +118,20 @@ export default function OrgDashboardPage() {
       )}
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard label="Institutions" value={String(members.length)} icon={<Building2 size={18} />} to={path('institutions')} hint={`${members.filter((inst) => inst.status === 'active').length} active`} definition="Institutions that belong to this organization, of any status." period="Now" updated={UPDATED} coverage="Whole organization" />
+        <MetricCard label="Institutions" value={String(members.length)} icon={<Building2 size={18} />} accent="blue" to={path('institutions')} hint={`${members.filter((inst) => inst.status === 'active').length} active`} definition="Institutions that belong to this organization, of any status." period="Now" updated={UPDATED} coverage="Whole organization" />
         <MetricCard
           label="Students"
           value={totalStudents.toLocaleString(currentRegion().locale)}
           icon={<GraduationCap size={18} />}
+          accent="green"
           hint={hidden.length > 0 ? `Not counted: ${hidden.length} independent ${hidden.length === 1 ? 'institution has' : 'institutions have'} not shared enrolment` : 'All institutions included'}
           definition="Students of institutions the organization runs, plus those that agreed to share enrolment. Demo figures."
           period="Now"
           updated={UPDATED}
           coverage={`${visibleStudents.length} of ${members.length} institutions`}
         />
-        <MetricCard label="Waiting for a decision" value={String(waiting)} icon={<Inbox size={18} />} to={path('inbox')} tone={waiting > 5 ? 'alert' : 'default'} definition="Approvals and tasks that nobody has decided or finished, in institutions the organization runs." period="Now" updated={UPDATED} coverage={`${own.length} institutions`} />
-        <MetricCard label="Open linking requests" value={String(openLinks.length)} icon={<Link2 size={18} />} to={path('link-requests')} tone={openLinks.length > 0 ? 'alert' : 'default'} definition="Requests to bring an institution into this organization that are not finished." period="Now" updated={UPDATED} coverage="Whole organization" />
+        <MetricCard label="Waiting for a decision" value={String(waiting)} icon={<Inbox size={18} />} accent="purple" to={path('inbox')} tone={waiting > 5 ? 'alert' : 'default'} definition="Approvals and tasks that nobody has decided or finished, in institutions the organization runs." period="Now" updated={UPDATED} coverage={`${own.length} institutions`} />
+        <MetricCard label="Open linking requests" value={String(openLinks.length)} icon={<Link2 size={18} />} accent="orange" to={path('link-requests')} tone={openLinks.length > 0 ? 'alert' : 'default'} definition="Requests to bring an institution into this organization that are not finished." period="Now" updated={UPDATED} coverage="Whole organization" />
       </div>
 
       <div className="mb-6 grid gap-6 lg:grid-cols-3">

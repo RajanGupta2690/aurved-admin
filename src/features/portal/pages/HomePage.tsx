@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import OrgDashboardPage from '../../organization/pages/OrgDashboardPage';
-import { CalendarClock, CheckCircle2, Inbox, MapPin, ShieldCheck } from 'lucide-react';
+import { Bell, CalendarClock, CheckCircle2, Inbox, MapPin, ShieldCheck } from 'lucide-react';
 import { inboxStore, pendingCount, unreadCount } from '../../../core/api/inboxStore';
 import { calendarStore, EVENT_KIND_LABEL } from '../../../core/api/calendarStore';
 import { useStore } from '../../../core/api/persistedStore';
@@ -15,7 +15,7 @@ import PageContainer from '../../../shared/layout/PageContainer';
 import { StatusBadge } from '../../../shared/ui/Badge';
 import { MetricCard } from '../../../shared/ui/Charts';
 import { EmptyState } from '../../../shared/ui/Feedback';
-import { Card, PageHeader } from '../../../shared/ui/Layout';
+import { Card, HERO_BUTTON, HERO_BUTTON_QUIET, PageHero } from '../../../shared/ui/Layout';
 
 const UPDATED = 'Live, from this browser';
 
@@ -56,19 +56,32 @@ export default function HomePage() {
 
   return (
     <PageContainer>
-      <PageHeader
+      <PageHero
+        eyebrow="SH-13"
+        greeting={`Welcome back, ${persona.name}`}
         title={inst?.name ?? org.name}
         description={`${PROFILE_LABEL[inst!.profile]}${relationship ? `, ${RELATIONSHIP_LABEL[relationship.type].toLowerCase()} of ${parent?.name ?? 'the university'}` : ''}. ${inst!.city}.`}
-        eyebrow="SH-13"
-        actions={<StatusBadge status={inst!.status} />}
+        note={org.implicit ? undefined : `Part of ${org.name} (${ORG_TYPE_LABEL[org.type].toLowerCase()}).`}
+        badge={<StatusBadge status={inst!.status} />}
+        actions={
+          <>
+            <Link to={path('inbox')} className={HERO_BUTTON}>
+              <Inbox size={16} aria-hidden="true" />
+              Tasks and approvals
+            </Link>
+            <Link to={path('calendar')} className={HERO_BUTTON_QUIET}>
+              <CalendarClock size={16} aria-hidden="true" />
+              Calendar
+            </Link>
+          </>
+        }
       />
-      {!org.implicit && <p className="-mt-3 mb-5 text-sm text-charcoal-600">Part of {org.name} ({ORG_TYPE_LABEL[org.type].toLowerCase()}).</p>}
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard label="Waiting for a decision" value={String(pending)} icon={<Inbox size={18} />} to={path('inbox')} tone={pending > 5 ? 'alert' : 'default'} definition="Approvals and tasks in this inbox that nobody has decided or finished." period="Now" updated={UPDATED} coverage="This institution" />
-        <MetricCard label="Unread notifications" value={String(unread)} definition="Notifications nobody has opened yet." period="Now" updated={UPDATED} coverage="This institution" />
-        <MetricCard label="Features available" value={`${counts.available} of ${counts.total}`} icon={<ShieldCheck size={18} />} hint="Counts what the plan, the parent organization and local switches allow." definition="Features of the portal that apply to this type of institution and are switched on, out of all that apply." period="Now" updated={UPDATED} coverage="This institution" />
-        <MetricCard label="Campuses" value={String(inst!.campuses.length)} icon={<MapPin size={18} />} definition="Campuses registered for this institution." period="Now" updated={UPDATED} coverage="This institution" />
+        <MetricCard label="Waiting for a decision" value={String(pending)} icon={<Inbox size={18} />} accent="blue" to={path('inbox')} tone={pending > 5 ? 'alert' : 'default'} definition="Approvals and tasks in this inbox that nobody has decided or finished." period="Now" updated={UPDATED} coverage="This institution" />
+        <MetricCard label="Unread notifications" value={String(unread)} icon={<Bell size={18} />} accent="orange" definition="Notifications nobody has opened yet." period="Now" updated={UPDATED} coverage="This institution" />
+        <MetricCard label="Features available" value={`${counts.available} of ${counts.total}`} icon={<ShieldCheck size={18} />} accent="purple" hint="Counts what the plan, the parent organization and local switches allow." definition="Features of the portal that apply to this type of institution and are switched on, out of all that apply." period="Now" updated={UPDATED} coverage="This institution" />
+        <MetricCard label="Campuses" value={String(inst!.campuses.length)} icon={<MapPin size={18} />} accent="green" definition="Campuses registered for this institution." period="Now" updated={UPDATED} coverage="This institution" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

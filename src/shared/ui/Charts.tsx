@@ -229,17 +229,28 @@ interface MetricCardProps {
   /** Where the detail view is. Makes the card a drill-down. */
   to?: string;
   tone?: 'default' | 'alert';
+  /** Colour of the icon chip. Copper when not given. */
+  accent?: 'copper' | 'blue' | 'green' | 'purple' | 'orange' | 'red';
 }
 
+const ACCENT: Record<NonNullable<MetricCardProps['accent']>, string> = {
+  copper: 'bg-primary-50 text-primary-700',
+  blue: 'bg-blue-50 text-blue-700',
+  green: 'bg-green-50 text-green-700',
+  purple: 'bg-purple-50 text-purple-700',
+  orange: 'bg-orange-50 text-orange-700',
+  red: 'bg-red-50 text-red-700',
+};
+
 /** KPI card with metric definition, period, last updated, coverage and drill-down. */
-export function MetricCard({ label, value, hint, icon, definition, period, updated, coverage, to, tone = 'default' }: MetricCardProps) {
+export function MetricCard({ label, value, hint, icon, definition, period, updated, coverage, to, tone = 'default', accent = 'copper' }: MetricCardProps) {
   return (
     <div className={cn('card flex flex-col gap-2 !p-4', tone === 'alert' && 'border-danger-200 bg-danger-50/40')}>
       <div className="flex items-start justify-between gap-2">
         <p className="text-sm font-medium text-charcoal-700">{label}</p>
         <div className="flex items-center gap-1">
           {icon && (
-            <span className="text-primary-700" aria-hidden="true">
+            <span className={cn('rounded-xl p-2', ACCENT[accent])} aria-hidden="true">
               {icon}
             </span>
           )}

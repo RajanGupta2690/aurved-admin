@@ -37,7 +37,7 @@ export default function Shell() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-warm-50 lg:flex">
+    <div className="min-h-screen bg-app lg:flex">
       <a href="#main" className="skip-link">
         Skip to main content
       </a>
