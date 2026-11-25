@@ -1,1 +1,0 @@
-import{r as e}from"./persistedStore-BdsFxZz_.js";import{Kt as t,Pt as n,Rt as r}from"./index-DrvZ7ZCH.js";function i(i){let{organizations:a}=n(),o=e(t);return i?r(o,a,i):null}function a(){return e(t)}export{a as n,i as t};

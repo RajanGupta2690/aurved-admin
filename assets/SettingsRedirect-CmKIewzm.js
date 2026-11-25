@@ -1,1 +1,0 @@
-import{i as e,t}from"./jsx-runtime-DbhiYZAp.js";import{Pt as n}from"./index-DrvZ7ZCH.js";var r=t();function i(){let{path:t}=n();return(0,r.jsx)(e,{to:t(`institution`),replace:!0})}export{i as default};
