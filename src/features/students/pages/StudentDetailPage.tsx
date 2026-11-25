@@ -1,12 +1,15 @@
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, User, Users } from 'lucide-react';
-import { students, classes, attendanceRecords, fees } from '../../../data/mockData';
+import { ArrowLeft, Phone, MapPin, Calendar, User } from 'lucide-react';
+import { classes, attendanceRecords, fees } from '../../../data/mockData';
+import { useStudents } from '../../../core/api/studentStore';
 import StudentParentSummary from '../components/StudentParentSummary';
 import StudentParentsPanel from '../components/StudentParentsPanel';
 import { useState } from 'react';
+import { formatDate } from '../../../core/i18n/format';
 
 export default function StudentDetailPage() {
   const { id } = useParams();
+  const students = useStudents();
   const [activeTab, setActiveTab] = useState('overview');
   
   const student = students.find(s => s.id === id);
@@ -43,7 +46,7 @@ export default function StudentDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link to="/students" className="p-2 hover:bg-warm-100 rounded-lg transition-colors">
+          <Link to="/students" aria-label="Back to students" className="p-2 hover:bg-warm-100 rounded-lg transition-colors">
             <ArrowLeft size={20} />
           </Link>
           <div>
@@ -51,10 +54,6 @@ export default function StudentDetailPage() {
             <p className="text-sm text-charcoal-600 mt-1">{student.admissionNumber}</p>
           </div>
         </div>
-        <Link to={`/students/${id}/edit`} className="btn-primary flex items-center gap-2">
-          <Edit size={20} />
-          Edit Student
-        </Link>
       </div>
 
       {/* Student Profile Card */}
@@ -85,7 +84,7 @@ export default function StudentDetailPage() {
                 <div>
                   <p className="text-charcoal-500 text-xs">Date of Birth</p>
                   <p className="text-charcoal-900 font-medium">
-                    {new Date(student.dateOfBirth).toLocaleDateString('en-IN')}
+                    {formatDate(student.dateOfBirth)}
                   </p>
                 </div>
               </div>
@@ -149,7 +148,7 @@ export default function StudentDetailPage() {
                     <div>
                       <dt className="text-sm text-charcoal-500">Date of Birth</dt>
                       <dd className="text-sm text-charcoal-900 font-medium mt-1">
-                        {new Date(student.dateOfBirth).toLocaleDateString('en-IN')}
+                        {formatDate(student.dateOfBirth)}
                       </dd>
                     </div>
                     <div>
@@ -183,7 +182,7 @@ export default function StudentDetailPage() {
                     <div>
                       <dt className="text-sm text-charcoal-500">Admission Date</dt>
                       <dd className="text-sm text-charcoal-900 font-medium mt-1">
-                        {new Date(student.admissionDate).toLocaleDateString('en-IN')}
+                        {formatDate(student.admissionDate)}
                       </dd>
                     </div>
                   </dl>
@@ -208,7 +207,7 @@ export default function StudentDetailPage() {
                 <div>
                   <dt className="text-sm text-charcoal-500">Date of Birth</dt>
                   <dd className="text-sm text-charcoal-900 font-medium mt-1">
-                    {new Date(student.dateOfBirth).toLocaleDateString('en-IN')}
+                    {formatDate(student.dateOfBirth)}
                   </dd>
                 </div>
                 <div>

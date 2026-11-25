@@ -74,7 +74,8 @@ export default function HelpPage() {
             <li>All names, numbers and institutions are made up.</li>
             <li>Everything you change is saved only in this browser. Another browser or device starts from the sample data.</li>
             <li>There is no sign in. Use the account menu to act as another person and see how access changes.</li>
-            <li>Some older screens still show the sample data of Sunrise International School, whichever institution you are in. They carry a note.</li>
+            <li>The Students, Student details and Parents screens still show the sample data of Sunrise International School, whichever institution you are in. They carry a note. Student names in other screens are typed as text and are not linked to them yet.</li>
+            <li>Language and region in your profile change dates, numbers and money. Screen words stay in English.</li>
           </ul>
           <div className="mt-4">
             <Button variant="danger" onClick={() => setConfirmReset(true)}>

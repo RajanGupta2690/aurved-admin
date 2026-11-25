@@ -1,3 +1,4 @@
+import { currentRegion } from '../i18n/format';
 import { SHARE_DOMAINS } from './model';
 import type { Agreement, ChecklistItem, PolicySetting, ShareLevel, World } from './model';
 import type { Institution, OrgType, Organization, RelationshipType } from './types';
@@ -153,13 +154,8 @@ export function isIndependent(organizations: Organization[], institutions: Insti
   return Boolean(org?.implicit) && institutions.filter((candidate) => candidate.orgId === inst.orgId).length === 1;
 }
 
-export function formatDate(iso: string | undefined | null): string {
-  if (!iso) return 'Not set';
-  const date = new Date(iso.length === 10 ? `${iso}T00:00:00` : iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  return date.toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric' });
-}
+export { formatDate } from '../i18n/format';
 
 export function monthName(month: number): string {
-  return new Date(2000, month - 1, 1).toLocaleDateString('en', { month: 'long' });
+  return new Date(2000, month - 1, 1).toLocaleDateString(currentRegion().locale, { month: 'long' });
 }

@@ -2,6 +2,10 @@ import { createStore } from './persistedStore';
 import type { Institution, Organization } from '../org/types';
 import type { FeatureConfig } from '../features/resolve';
 import type { Persona, RoleDef } from '../access/engine';
+import type { RecordsState } from '../records/types';
+import type { StaffState } from '../staff/model';
+import { seedStaff } from '../../data/demo/staffData';
+import { seedRecords } from '../records/registry';
 import { DEFAULT_INSTITUTION_ID, DEMO_INSTITUTIONS, DEMO_ORGANIZATIONS } from '../../data/demo/tenants';
 import { DEFAULT_PERSONA_ID, DEMO_FEATURE_CONFIGS, DEMO_PERSONAS, DEMO_ROLES } from '../../data/demo/access';
 
@@ -31,6 +35,16 @@ export const accessStore = createStore<{ roles: RoleDef[]; personas: Persona[] }
   (value): value is { roles: RoleDef[]; personas: Persona[] } => isObject(value) && isArray(value.roles) && isArray(value.personas),
 );
 
+/** Staff, designations, departments, assignments, duties and delegations. Edited by Staff (M5). */
+export const staffStore = createStore<StaffState>(
+  'staff',
+  seedStaff,
+  (value): value is StaffState => isObject(value) && isArray(value.members) && isArray(value.designations) && isArray(value.departments) && isArray(value.assignments) && isArray(value.duties) && isArray(value.delegations) && isObject(value.policies) && isObject(value.banks) && isArray(value.events),
+);
+
+/** Records of every collection (behaviour, exams, invoices, ...), keyed by collection. */
+export const recordsStore = createStore<RecordsState>('records', seedRecords, (value): value is RecordsState => isObject(value));
+
 export interface Prefs {
   personaId: string;
   lastInstId: string;
@@ -39,6 +53,10 @@ export interface Prefs {
   sessionId: string;
   textSize: 'normal' | 'large';
   reduceMotion: boolean;
+  locale: string;
+  timeZone: string;
+  currency: string;
+  contrast: 'normal' | 'high';
 }
 
 /** What the person chose in this browser. Kept even when demo data is reset. */
@@ -52,6 +70,10 @@ export const prefsStore = createStore<Prefs>(
     sessionId: 'ay-2025-26',
     textSize: 'normal',
     reduceMotion: false,
+    locale: 'en-IN',
+    timeZone: 'Asia/Kolkata',
+    currency: 'INR',
+    contrast: 'normal',
   }),
   (value): value is Prefs => isObject(value) && typeof value.personaId === 'string' && typeof value.lastInstId === 'string',
 );

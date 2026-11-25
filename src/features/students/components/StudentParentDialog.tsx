@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link2, Search, TriangleAlert, UserPlus } from 'lucide-react';
 import Modal from '../../../shared/components/Modal';
-import { students as allStudents } from '../../../data/mockData';
+import { useStudents } from '../../../core/api/studentStore';
 import { useFamily } from '../../../core/api/familyStore';
 import {
   emptyParentForm,
@@ -26,7 +26,7 @@ interface StudentParentDialogProps {
   onDone: (message: string) => void;
 }
 
-function childNames(parent: Parent): string {
+function childNames(parent: Parent, allStudents: Student[]): string {
   return parent.studentIds
     .map((id) => allStudents.find((student) => student.id === id)?.fullName)
     .filter(Boolean)
@@ -35,6 +35,7 @@ function childNames(parent: Parent): string {
 
 /** Mount this only while it is open, so every opening starts clean. */
 export default function StudentParentDialog({ student, initialMode, onClose, onDone }: StudentParentDialogProps) {
+  const allStudents = useStudents();
   const { family, actions } = useFamily();
   const formRef = useRef<HTMLFormElement>(null);
   const [mode, setMode] = useState<ParentDialogMode>(initialMode);
@@ -118,7 +119,7 @@ export default function StudentParentDialog({ student, initialMode, onClose, onD
                         <span className="font-medium">{parentFullLabel(parent)}</span>
                         <span className="block text-xs text-charcoal-500">
                           Same: {matched.join(', ')}
-                          {childNames(parent) ? ` · Children: ${childNames(parent)}` : ''}
+                          {childNames(parent, allStudents) ? ` · Children: ${childNames(parent, allStudents)}` : ''}
                         </span>
                       </span>
                       <button
@@ -188,7 +189,7 @@ export default function StudentParentDialog({ student, initialMode, onClose, onD
                       </p>
                       <p className="text-xs text-charcoal-500 truncate">{parent.address}</p>
                       <p className="text-xs text-charcoal-500 mt-1">
-                        {childNames(parent) ? `Children: ${childNames(parent)}` : 'No children linked yet'}
+                        {childNames(parent, allStudents) ? `Children: ${childNames(parent, allStudents)}` : 'No children linked yet'}
                       </p>
                     </div>
                     <button

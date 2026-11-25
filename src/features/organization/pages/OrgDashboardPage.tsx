@@ -16,6 +16,7 @@ import type { Column } from '../../../shared/ui/DataTable';
 import { Alert, EmptyState } from '../../../shared/ui/Feedback';
 import { Card, PageHeader } from '../../../shared/ui/Layout';
 import { useOrgData, useWorld } from '../hooks';
+import { currentRegion } from '../../../core/i18n/format';
 
 const UPDATED = 'Live, from this browser';
 
@@ -78,7 +79,7 @@ export default function OrgDashboardPage() {
       sortable: true,
       sortValue: (row) => (shareLevelFor(world, row, 'enrolment') === 'none' ? -1 : DEMO_STATS[row.id]?.students ?? 0),
       accessor: (row) => (shareLevelFor(world, row, 'enrolment') === 'none' ? 'Not shared' : DEMO_STATS[row.id]?.students ?? 0),
-      cell: (row) => (shareLevelFor(world, row, 'enrolment') === 'none' ? <span className="text-charcoal-600">Not shared</span> : (DEMO_STATS[row.id]?.students ?? 0).toLocaleString('en')),
+      cell: (row) => (shareLevelFor(world, row, 'enrolment') === 'none' ? <span className="text-charcoal-600">Not shared</span> : (DEMO_STATS[row.id]?.students ?? 0).toLocaleString(currentRegion().locale)),
     },
     { key: 'waiting', header: 'Waiting', align: 'right', sortable: true, accessor: (row) => (isExternal(row) ? '' : pendingCount(inbox, row.id)) },
     { key: 'status', header: 'Status', sortable: true, accessor: (row) => row.status, cell: (row) => <StatusBadge status={row.status} /> },
@@ -114,7 +115,7 @@ export default function OrgDashboardPage() {
         <MetricCard label="Institutions" value={String(members.length)} icon={<Building2 size={18} />} to={path('institutions')} hint={`${members.filter((inst) => inst.status === 'active').length} active`} definition="Institutions that belong to this organization, of any status." period="Now" updated={UPDATED} coverage="Whole organization" />
         <MetricCard
           label="Students"
-          value={totalStudents.toLocaleString('en')}
+          value={totalStudents.toLocaleString(currentRegion().locale)}
           icon={<GraduationCap size={18} />}
           hint={hidden.length > 0 ? `Not counted: ${hidden.length} independent ${hidden.length === 1 ? 'institution has' : 'institutions have'} not shared enrolment` : 'All institutions included'}
           definition="Students of institutions the organization runs, plus those that agreed to share enrolment. Demo figures."
@@ -134,7 +135,7 @@ export default function OrgDashboardPage() {
           {visibleStudents.length === 0 ? (
             <EmptyState title="Nothing to show" description="No institution has shared enrolment yet." />
           ) : (
-            <BarChart data={visibleStudents.map((inst) => ({ label: inst.shortName, value: DEMO_STATS[inst.id]?.students ?? 0 }))} ariaLabel="Students by institution" format={(value) => value.toLocaleString('en')} />
+            <BarChart data={visibleStudents.map((inst) => ({ label: inst.shortName, value: DEMO_STATS[inst.id]?.students ?? 0 }))} ariaLabel="Students by institution" format={(value) => value.toLocaleString(currentRegion().locale)} />
           )}
           {hidden.length > 0 && (
             <p className="mt-3 text-sm text-charcoal-600">
@@ -182,7 +183,7 @@ export default function OrgDashboardPage() {
               <div className="flex justify-between gap-3">
                 <dt className="text-charcoal-600">Student seats used</dt>
                 <dd className="font-medium text-charcoal-900">
-                  {billing.studentsUsed.toLocaleString('en')} of {billing.studentSeats.toLocaleString('en')}
+                  {billing.studentsUsed.toLocaleString(currentRegion().locale)} of {billing.studentSeats.toLocaleString(currentRegion().locale)}
                 </dd>
               </div>
             </dl>

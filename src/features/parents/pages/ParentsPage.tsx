@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Plus, Phone, Mail, User, Users, MapPin, Briefcase } from 'lucide-react';
-import { students } from '../../../data/mockData';
+import { useStudents } from '../../../core/api/studentStore';
 import { useFamily } from '../../../core/api/familyStore';
 import { parentDisplayName, parentFullLabel, searchParents } from '../../../core/api/familyLogic';
-import type { Parent } from '../../../types';
+import type { Parent, Student } from '../../../types';
 import DeleteConfirmation from '../../../shared/components/DeleteConfirmation';
 import Toast from '../../../shared/components/Toast';
 import AddParentDialog from '../components/AddParentDialog';
@@ -13,6 +13,7 @@ import ParentEditDialog from '../components/ParentEditDialog';
 type ToastState = { show: boolean; type: 'success' | 'error'; message: string };
 
 export default function ParentsPage() {
+  const students = useStudents();
   const { family, actions } = useFamily();
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdd, setShowAdd] = useState(false);
@@ -39,6 +40,25 @@ export default function ParentsPage() {
     setDeleteTarget(parent);
   };
 
+  const exportList = () => {
+    const quote = (value: string) => `"${value.replace(/"/g, '""')}"`;
+    const header = ['Parent', 'Father phone', 'Mother phone', 'Email', 'Children'];
+    const rows = filteredParents.map((parent) => [
+      parentFullLabel(parent),
+      parent.fatherPhone ?? '',
+      parent.motherPhone ?? '',
+      parent.fatherEmail || parent.motherEmail || '',
+      parent.studentIds.map((id) => students.find((student) => student.id === id)?.fullName ?? '').filter(Boolean).join('; '),
+    ]);
+    const text = [header, ...rows].map((row) => row.map((cell) => quote(String(cell))).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'parents.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+    notify('success', `Exported ${filteredParents.length} parent records.`);
+  };
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -116,7 +136,7 @@ export default function ParentsPage() {
               className="input pl-10"
             />
           </div>
-          <button className="btn-secondary">
+          <button type="button" className="btn-secondary" onClick={exportList}>
             Export List
           </button>
         </div>
@@ -126,6 +146,7 @@ export default function ParentsPage() {
       <div className="card overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full">
+            <caption className="sr-only">Parents and guardians</caption>
             <thead className="bg-warm-50 border-b border-warm-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-charcoal-700 uppercase tracking-wider">
@@ -156,7 +177,7 @@ export default function ParentsPage() {
                 filteredParents.map((parent) => {
                   const children = parent.studentIds
                     .map((id) => students.find((student) => student.id === id))
-                    .filter((student): student is (typeof students)[number] => Boolean(student));
+                    .filter((student): student is Student => Boolean(student));
                   return (
                     <tr key={parent.id} className="hover:bg-warm-50 transition-colors">
                       <td className="px-6 py-4">
@@ -246,9 +267,6 @@ export default function ParentsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <button className="btn-ghost text-sm py-1 px-3">
-                            View
-                          </button>
                           <button
                             onClick={() => setEditId(parent.id)}
                             className="btn-ghost text-sm py-1 px-3"

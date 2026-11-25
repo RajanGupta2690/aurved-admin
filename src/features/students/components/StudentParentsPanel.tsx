@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Briefcase, Link2, Mail, MapPin, Pencil, Phone, Unlink, UserPlus, Users } from 'lucide-react';
-import { students as allStudents } from '../../../data/mockData';
+import { useStudents } from '../../../core/api/studentStore';
 import { useFamily } from '../../../core/api/familyStore';
 import { getParentForStudent, parentFullLabel, parentPeople } from '../../../core/api/familyLogic';
 import type { ParentPerson } from '../../../core/api/familyLogic';
@@ -57,6 +57,7 @@ function PersonCard({ person }: { person: ParentPerson }) {
 
 /** Content of the Parent/Guardian tab on the student page. */
 export default function StudentParentsPanel({ student }: { student: Student }) {
+  const allStudents = useStudents();
   const { family, actions } = useFamily();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [toast, setToast] = useState<ToastState>({ show: false, message: '' });

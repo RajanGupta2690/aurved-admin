@@ -1,5 +1,5 @@
 import { createStore } from './persistedStore';
-import { accessStore, featureConfigStore, orgStore } from './stores';
+import { accessStore, featureConfigStore, orgStore, recordsStore, staffStore } from './stores';
 import type { Actor, Snapshot, World } from '../org/model';
 import type { Res } from '../org/ops';
 import { seedWorld } from '../../data/demo/orgData';
@@ -18,17 +18,23 @@ export const worldStore = createStore<World>(
     Array.isArray(value.sessions) &&
     Array.isArray(value.curricula) &&
     Array.isArray(value.history) &&
+    Array.isArray(value.configHistory) &&
+    Array.isArray(value.audit) &&
     isObject(value.policies) &&
     isObject(value.billing),
 );
 
 export function snapshot(): Snapshot {
-  return { orgs: orgStore.get(), world: worldStore.get() };
+  return { orgs: orgStore.get(), world: worldStore.get(), access: accessStore.get(), features: featureConfigStore.get(), staff: staffStore.get(), records: recordsStore.get() };
 }
 
 export function commit(snap: Snapshot) {
   orgStore.set(snap.orgs);
   worldStore.set(snap.world);
+  accessStore.set(snap.access);
+  featureConfigStore.set(snap.features);
+  staffStore.set(snap.staff);
+  recordsStore.set(snap.records);
 }
 
 export const nowIso = () => new Date().toISOString();

@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { TriangleAlert } from 'lucide-react';
 import Modal from '../../../shared/components/Modal';
-import { students } from '../../../data/mockData';
+import { useStudents } from '../../../core/api/studentStore';
 import { useFamily } from '../../../core/api/familyStore';
 import {
   findDuplicateParents,
@@ -24,6 +24,7 @@ interface ParentEditDialogProps {
 /** Mount this only while it is open, so the form starts fresh each time. */
 export default function ParentEditDialog({ parent, onClose, onSaved }: ParentEditDialogProps) {
   const { family, actions } = useFamily();
+  const students = useStudents();
   const formRef = useRef<HTMLFormElement>(null);
   const [values, setValues] = useState<ParentFormValues>(() => parentToForm(parent));
   const [errors, setErrors] = useState<FormErrors>({});

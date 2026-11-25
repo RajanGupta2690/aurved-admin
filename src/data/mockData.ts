@@ -2,7 +2,6 @@ import type {
   Institution, 
   AcademicSession, 
   Class, 
-  Section, 
   Student, 
   Parent, 
   Teacher,

@@ -14,7 +14,7 @@ import { useCoveredInstitutionIds, useNavigation } from '../../../shared/layout/
 import PageContainer from '../../../shared/layout/PageContainer';
 import { StatusBadge } from '../../../shared/ui/Badge';
 import { MetricCard } from '../../../shared/ui/Charts';
-import { Alert, EmptyState } from '../../../shared/ui/Feedback';
+import { EmptyState } from '../../../shared/ui/Feedback';
 import { Card, PageHeader } from '../../../shared/ui/Layout';
 
 const UPDATED = 'Live, from this browser';
@@ -70,12 +70,6 @@ export default function HomePage() {
         <MetricCard label="Features available" value={`${counts.available} of ${counts.total}`} icon={<ShieldCheck size={18} />} hint="Counts what the plan, the parent organization and local switches allow." definition="Features of the portal that apply to this type of institution and are switched on, out of all that apply." period="Now" updated={UPDATED} coverage="This institution" />
         <MetricCard label="Campuses" value={String(inst!.campuses.length)} icon={<MapPin size={18} />} definition="Campuses registered for this institution." period="Now" updated={UPDATED} coverage="This institution" />
       </div>
-
-      {inst!.profile !== 'school' && (
-        <Alert tone="info" title={`Academic modules for a ${PROFILE_LABEL[inst!.profile].toLowerCase()} are not available in this version`} className="mb-6">
-          The menu, search, tasks, calendar and access rules work here. Student, exam and finance screens exist for schools only so far.
-        </Alert>
-      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card title="Needs a decision" description="Oldest first" className="lg:col-span-2">

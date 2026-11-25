@@ -51,7 +51,7 @@ export type Res<E extends object = object> = ({ ok: true; snap: Snapshot } & E) 
 const fail = (error: string): { ok: false; error: string } => ({ ok: false, error });
 
 // ---------- helpers
-function record(snap: Snapshot, entry: { orgId: string; instId?: string; kind: HistoryKind; summary: string; reason?: string }, actor: Actor, now: string): Snapshot {
+export function record(snap: Snapshot, entry: { orgId: string; instId?: string; kind: HistoryKind; summary: string; reason?: string }, actor: Actor, now: string): Snapshot {
   const id = nextId(
     'hist',
     snap.world.history.map((item) => item.id),
@@ -390,7 +390,7 @@ export function createInstitution(snap: Snapshot, input: NewInstitutionInput, ac
     terms: generateTerms(input.session.start, input.session.end, input.session.system),
   };
 
-  let next: Snapshot = { orgs: { organizations, institutions: [...snap.orgs.institutions, inst] }, world: snap.world };
+  let next: Snapshot = { ...snap, orgs: { organizations, institutions: [...snap.orgs.institutions, inst] } };
   const unitIds = input.mode === 'in_org' ? input.unitIds ?? [] : [];
   next = patchWorld(next, {
     curricula: [...next.world.curricula, curriculum],

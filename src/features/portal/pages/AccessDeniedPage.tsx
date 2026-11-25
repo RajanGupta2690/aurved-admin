@@ -1,4 +1,7 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { commit, nowIso, snapshot } from '../../../core/api/worldStore';
+import { recordDenied } from '../../../core/org/accessOps';
 import { ShieldAlert } from 'lucide-react';
 import { usePortal } from '../../../core/context/portalContext';
 import { EmptyState } from '../../../shared/ui/Feedback';
@@ -24,7 +27,15 @@ interface AccessDeniedPageProps {
 
 /** 403. Always says why. The same rule will be enforced by the server later, hiding the link is not security. */
 export default function AccessDeniedPage({ reason, code }: AccessDeniedPageProps) {
-  const { persona, path, org, inst, roles, personas, place } = usePortal();
+  const { persona, path, org, inst, roles, personas, place, can, feature } = usePortal();
+  const location = useLocation();
+  const logged = `${persona.id}|${location.pathname}|${reason}`;
+  useEffect(() => {
+    // Every refusal is written to the audit log (the same one in the same minute is skipped).
+    const page = location.pathname.replace(/^\/aurved-admin/, '');
+    commit(recordDenied(snapshot(), { orgId: org.id, instId: inst?.id, byName: persona.name, detail: `Refused the page ${page}. ${reason}` }, nowIso()));
+  }, [logged]); // eslint-disable-line react-hooks/exhaustive-deps
+  const explainable = feature('access.explainer').available && can('access.explainer.view').allowed;
 
   const admins = personas.filter((person) =>
     person.memberships.some((membership) => {
@@ -38,11 +49,19 @@ export default function AccessDeniedPage({ reason, code }: AccessDeniedPageProps
       <EmptyState
         icon={<ShieldAlert size={36} />}
         title="You cannot open this page"
+        asPageTitle
         description={reason}
         action={
-          <Link to={path()} className="btn-primary">
-            Go to Home
-          </Link>
+          <>
+            <Link to={path()} className="btn-primary">
+              Go to Home
+            </Link>
+            {explainable && (
+              <Link to={`${path('access-explainer')}?person=${persona.id}&place=${inst?.id ?? 'org'}`} className="btn-secondary">
+                Why can I not?
+              </Link>
+            )}
+          </>
         }
       />
       <dl className="mt-6 space-y-2 rounded-xl border border-warm-200 bg-white p-4 text-sm">

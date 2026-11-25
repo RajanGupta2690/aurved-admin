@@ -244,6 +244,8 @@ export function seedWorld(): World {
     policies: POLICIES,
     billing: BILLING,
     history: HISTORY,
+    configHistory: [],
+    audit: [],
   };
 }
 

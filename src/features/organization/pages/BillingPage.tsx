@@ -15,8 +15,9 @@ import { Alert, EmptyState } from '../../../shared/ui/Feedback';
 import { Card, DescriptionList, PageHeader } from '../../../shared/ui/Layout';
 import { Dialog } from '../../../shared/ui/Overlay';
 import { useApply, useWorld } from '../hooks';
+import { currentRegion, formatMoney } from '../../../core/i18n/format';
 
-const money = (amount: number, currency: string) => new Intl.NumberFormat('en-IN', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
+const money = formatMoney;
 
 /** ORG-12. Read only. The only action is asking for a different plan. */
 export default function BillingPage() {
@@ -103,7 +104,7 @@ export default function BillingPage() {
         </Card>
         <Card title="Student seats" className="lg:col-span-2">
           <p className="text-2xl font-bold text-charcoal-950">
-            {billing.studentsUsed.toLocaleString('en')} <span className="text-base font-normal text-charcoal-600">of {billing.studentSeats.toLocaleString('en')} seats used</span>
+            {billing.studentsUsed.toLocaleString(currentRegion().locale)} <span className="text-base font-normal text-charcoal-600">of {billing.studentSeats.toLocaleString(currentRegion().locale)} seats used</span>
           </p>
           <div className="mt-3 h-3 overflow-hidden rounded-full bg-warm-200" role="progressbar" aria-valuenow={used} aria-valuemin={0} aria-valuemax={100} aria-label="Student seats used">
             <div className={used >= 90 ? 'h-full bg-danger-600' : 'h-full bg-primary-700'} style={{ width: `${Math.min(used, 100)}%` }} />

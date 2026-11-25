@@ -38,15 +38,18 @@ interface StateProps {
   action?: ReactNode;
   icon?: ReactNode;
   className?: string;
+  /** Set when the state is the whole page, so the page has a heading. */
+  asPageTitle?: boolean;
 }
 
-export function EmptyState({ title, description, action, icon, className }: StateProps) {
+export function EmptyState({ title, description, action, icon, className, asPageTitle }: StateProps) {
+  const Title = asPageTitle ? 'h1' : 'p';
   return (
     <div className={cn('flex flex-col items-center justify-center rounded-xl border border-dashed border-warm-300 bg-warm-50 px-6 py-10 text-center', className)}>
       <div className="text-charcoal-400" aria-hidden="true">
         {icon ?? <Inbox size={32} />}
       </div>
-      <p className="mt-3 font-medium text-charcoal-900">{title}</p>
+      <Title className="mt-3 font-medium text-charcoal-900">{title}</Title>
       {description && <p className="mt-1 max-w-md text-sm text-charcoal-600">{description}</p>}
       {action && <div className="mt-4 flex flex-wrap justify-center gap-3">{action}</div>}
     </div>

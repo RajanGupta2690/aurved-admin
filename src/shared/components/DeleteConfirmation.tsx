@@ -1,4 +1,5 @@
 import { AlertTriangle } from 'lucide-react';
+import { useEffect, useId } from 'react';
 
 interface DeleteConfirmationProps {
   isOpen: boolean;
@@ -23,6 +24,15 @@ export default function DeleteConfirmation({
   confirmLabel = 'Delete',
   warning = 'This action cannot be undone.',
 }: DeleteConfirmationProps) {
+  const titleId = useId();
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
   if (!isOpen) return null;
 
   const handleConfirm = () => {
@@ -39,13 +49,13 @@ export default function DeleteConfirmation({
       />
       
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+      <div role="alertdialog" aria-modal="true" aria-labelledby={titleId} className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
         <div className="flex items-start gap-4">
           <div className="p-3 bg-red-50 rounded-full">
             <AlertTriangle className="text-red-600" size={24} />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-charcoal-950 mb-2">{title}</h3>
+            <h3 id={titleId} className="text-lg font-semibold text-charcoal-950 mb-2">{title}</h3>
             <p className="text-sm text-charcoal-600 mb-1">{message}</p>
             {itemName && (
               <p className="text-sm font-medium text-charcoal-900 mt-2">

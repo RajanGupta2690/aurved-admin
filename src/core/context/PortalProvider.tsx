@@ -5,6 +5,7 @@ import { accessStore, featureConfigStore, orgStore, prefsStore } from '../api/st
 import { useStore } from '../api/persistedStore';
 import { evaluate } from '../access/engine';
 import { isExternal } from '../org/rules';
+import { effectiveConfig } from '../features/effective';
 import { resolveFeature } from '../features/resolve';
 import type { FeatureConfig } from '../features/resolve';
 import { PortalContext } from './portalContext';
@@ -37,7 +38,7 @@ export default function PortalProvider({ scope, children }: { scope: 'inst' | 'o
 
   const value = useMemo<PortalContextValue | null>(() => {
     if (!org || (scope === 'inst' && !inst)) return null;
-    const config = inst ? configs[inst.id] ?? null : null;
+    const config = inst ? effectiveConfig(configs, organizations, inst) : null;
     const place = { orgId: org.id, instId: inst?.id, external: inst ? isExternal(inst) : undefined };
     const base = scope === 'inst' ? `/inst/${inst?.id}` : `/org/${org.id}`;
     return {
@@ -65,6 +66,7 @@ export default function PortalProvider({ scope, children }: { scope: 'inst' | 'o
       },
       sessionId: prefs.sessionId,
       setSession: (sessionId) => prefsStore.set((previous) => ({ ...previous, sessionId })),
+      regionKey: `${prefs.locale}|${prefs.timeZone}|${prefs.currency}`,
       switchPersona: (personaId) => {
         const next = personas.find((candidate) => candidate.id === personaId);
         if (!next) return;
@@ -72,7 +74,7 @@ export default function PortalProvider({ scope, children }: { scope: 'inst' | 'o
         navigate(defaultPathFor(next, organizations, institutions));
       },
     };
-  }, [scope, org, inst, persona, personas, roles, organizations, institutions, configs, prefs.campusByInst, prefs.sessionId, navigate]);
+  }, [scope, org, inst, persona, personas, roles, organizations, institutions, configs, prefs.campusByInst, prefs.sessionId, prefs.locale, prefs.timeZone, prefs.currency, navigate]);
 
   if (!value) return <NotFoundPage standalone />;
   return <PortalContext.Provider value={value}>{children}</PortalContext.Provider>;

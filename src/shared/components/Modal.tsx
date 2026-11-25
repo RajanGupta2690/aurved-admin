@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -10,6 +10,7 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+  const titleId = useId();
   // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -43,7 +44,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
       />
       
       {/* Modal - Full screen on mobile, centered on larger screens */}
-      <div className={`
+      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className={`
         relative bg-white w-full
         rounded-t-2xl sm:rounded-xl shadow-2xl
         ${sizeClasses[size]} 
@@ -53,9 +54,11 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
       `}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-warm-200">
-          <h2 className="text-lg sm:text-xl font-semibold text-charcoal-950">{title}</h2>
+          <h2 id={titleId} className="text-lg sm:text-xl font-semibold text-charcoal-950">{title}</h2>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close"
             className="p-2 hover:bg-warm-100 rounded-lg transition-colors"
           >
             <X size={20} className="text-charcoal-600" />

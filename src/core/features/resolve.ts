@@ -76,3 +76,44 @@ export function resolveAll(config: FeatureConfig, profile: ProfileKind | null, k
   });
   return result;
 }
+
+export interface FeatureStep {
+  label: string;
+  passed: boolean;
+  detail: string;
+}
+
+/** The same decision as resolveFeature, layer by layer. */
+export function explainFeature(config: FeatureConfig, profile: ProfileKind | null, key: string): { resolution: FeatureResolution; steps: FeatureStep[] } {
+  const resolution = resolveFeature(config, profile, key);
+  const feature = getFeature(key);
+  const module = getModuleOf(key);
+  const steps: FeatureStep[] = [];
+  if (!feature || !module) return { resolution, steps: [{ label: 'Does the feature exist?', passed: false, detail: REASON_TEXT.unknown_feature }] };
+  const applies = !profile || moduleAppliesTo(module, profile);
+  steps.push({ label: 'Does it apply to this type of institution?', passed: applies, detail: applies ? 'Yes.' : REASON_TEXT.not_applicable });
+  if (!applies) return { resolution, steps };
+  const inPlan = feature.required === true || matchesAny(config.entitlements, key);
+  steps.push({ label: 'Is it in the plan?', passed: inPlan, detail: inPlan ? (feature.required ? 'Yes. It is part of the platform for everyone.' : 'Yes.') : REASON_TEXT.not_in_plan });
+  if (!inPlan) return { resolution, steps };
+  const policy = config.policy[key] ?? config.policy[module.key];
+  steps.push({
+    label: 'Does the organization block it?',
+    passed: policy !== 'locked_off',
+    detail: policy === 'locked_off' ? REASON_TEXT.locked_by_policy : policy === 'mandatory' ? 'No. The organization requires it.' : 'No.',
+  });
+  if (policy === 'locked_off') return { resolution, steps };
+  const mandatory = policy === 'mandatory' || feature.required === true;
+  const off = config.local[key] === false || config.local[module.key] === false;
+  steps.push({ label: 'Has the institution switched it off?', passed: mandatory || !off, detail: mandatory ? 'It cannot be switched off.' : off ? REASON_TEXT.disabled_locally : 'No, it is on.' });
+  if (!mandatory && off) return { resolution, steps };
+  if (feature.dependsOn?.length) {
+    const missing = feature.dependsOn.map((dependency) => ({ dependency, result: resolveFeature(config, profile, dependency) })).find((item) => !item.result.available);
+    steps.push({
+      label: 'Is everything it needs available?',
+      passed: !missing,
+      detail: missing ? `No. "${getFeature(missing.dependency)?.label ?? missing.dependency}" is not available.` : `Yes: ${feature.dependsOn.map((d) => getFeature(d)?.label ?? d).join(', ')}.`,
+    });
+  }
+  return { resolution, steps };
+}

@@ -9,6 +9,7 @@ export default function NotFoundPage({ standalone = false }: { standalone?: bool
     <EmptyState
       icon={<Compass size={36} />}
       title="This page does not exist"
+      asPageTitle
       description="The address may be old or mistyped. Go back to the start and use the menu."
       action={
         <Link to="/" className="btn-primary">

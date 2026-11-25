@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
-import { students as demoStudents } from '../../data/mockData';
+import { useStudents } from '../../core/api/studentStore';
 import { useStore } from '../../core/api/persistedStore';
 import { inboxStore } from '../../core/api/inboxStore';
 import { usePortal } from '../../core/context/portalContext';
@@ -20,6 +20,7 @@ interface Result {
 
 /** Search over what this person may open. Ctrl or Cmd plus K opens it from anywhere. */
 export default function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const demoStudents = useStudents();
   const { scope, inst, org, feature, can, path, persona, organizations, institutions } = usePortal();
   const inbox = useStore(inboxStore);
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ export default function GlobalSearch({ open, onClose }: { open: boolean; onClose
       .slice(0, 4)
       .forEach((item) => found.push({ id: `t-${item.id}`, group: 'Tasks and approvals', label: item.title, hint: item.status, to: `/inst/${item.instId}/inbox` }));
     return found.slice(0, 14);
-  }, [query, scope, inst, org.id, feature, can, path, persona, organizations, institutions, inbox]);
+  }, [query, scope, inst, org.id, feature, can, path, persona, organizations, institutions, inbox, demoStudents]);
 
   const close = () => {
     setQuery('');

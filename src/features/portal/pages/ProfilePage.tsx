@@ -3,7 +3,8 @@ import { useStore } from '../../../core/api/persistedStore';
 import { usePortal } from '../../../core/context/portalContext';
 import PageContainer from '../../../shared/layout/PageContainer';
 import { Badge } from '../../../shared/ui/Badge';
-import { Switch } from '../../../shared/ui/Field';
+import { SelectField, Switch } from '../../../shared/ui/Field';
+import { CURRENCIES, formatDate, formatMoney, formatNumber, LOCALES, TIME_ZONES } from '../../../core/i18n/format';
 import { Card, DescriptionList, PageHeader } from '../../../shared/ui/Layout';
 
 export default function ProfilePage() {
@@ -36,10 +37,23 @@ export default function ProfilePage() {
             </div>
           </fieldset>
           <div className="mt-5">
+            <Switch label="High contrast" checked={prefs.contrast === 'high'} onChange={(checked) => prefsStore.set((previous) => ({ ...previous, contrast: checked ? 'high' : 'normal' }))} description="Darker text, stronger borders, thicker focus ring." />
+          </div>
+          <div className="mt-5">
             <Switch label="Reduce motion" checked={prefs.reduceMotion} onChange={(checked) => prefsStore.set((previous) => ({ ...previous, reduceMotion: checked }))} description="Turns off sliding and fading. Your device setting is also respected." />
           </div>
         </Card>
 
+        <Card title="Language and region" description="Dates, numbers and money follow your region. The words on the screens are in English for now." className="lg:col-span-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <SelectField label="Region and format" options={LOCALES} value={prefs.locale ?? 'en-IN'} onChange={(value) => prefsStore.set((previous) => ({ ...previous, locale: value }))} />
+            <SelectField label="Time zone" options={TIME_ZONES.map((zone) => ({ value: zone, label: zone }))} value={prefs.timeZone ?? 'Asia/Kolkata'} onChange={(value) => prefsStore.set((previous) => ({ ...previous, timeZone: value }))} />
+            <SelectField label="Currency" options={CURRENCIES} value={prefs.currency ?? 'INR'} onChange={(value) => prefsStore.set((previous) => ({ ...previous, currency: value }))} />
+          </div>
+          <p className="mt-4 text-sm text-charcoal-700" aria-live="polite">
+            Example: {formatDate('2026-11-21')}, {formatNumber(1234567)}, {formatMoney(1234567)}.
+          </p>
+        </Card>
         <Card title="Roles and places" description="Where you hold a role and what the role includes." className="lg:col-span-2">
           <ul className="space-y-4">
             {persona.memberships.map((membership, index) => (

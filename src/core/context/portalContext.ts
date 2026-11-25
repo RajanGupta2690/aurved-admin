@@ -28,6 +28,8 @@ export interface PortalContextValue {
   sessionId: string;
   setSession: (sessionId: string) => void;
   switchPersona: (personaId: string) => void;
+  /** Changes when the person changes language or region, so every page draws again with the new formats. */
+  regionKey: string;
 }
 
 export const PortalContext = createContext<PortalContextValue | null>(null);

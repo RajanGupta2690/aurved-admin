@@ -13,7 +13,8 @@ const ALWAYS_OPEN = ['home', 'inbox', 'calendar', 'help', 'profile', 'institutio
  * This is for a clear experience. The server must repeat the same checks later.
  */
 export default function RouteGate({ def }: { def: RouteDef }) {
-  const { feature, can, inst, org } = usePortal();
+  const portal = usePortal();
+  const { feature, can, inst, org } = portal;
   const resolution = feature(def.feature);
   const access = can(`${def.feature}.view`);
 
@@ -28,10 +29,13 @@ export default function RouteGate({ def }: { def: RouteDef }) {
   if (stopped) {
     return (
       <div className="mx-auto max-w-xl py-10">
-        <EmptyState title={`${inst.shortName} is ${inst.status}`} description={`Working screens are closed while an institution is ${inst.status}. Its records are kept. ${org.implicit ? '' : `Ask the administrators of ${org.name} to reactivate it.`}`} />
+        <EmptyState asPageTitle title={`${inst.shortName} is ${inst.status}`} description={`Working screens are closed while an institution is ${inst.status}. Its records are kept. ${org.implicit ? '' : `Ask the administrators of ${org.name} to reactivate it.`}`} />
       </div>
     );
   }
+
+  const blockedBy = def.requires?.(portal);
+  if (blockedBy) return <AccessDeniedPage reason={blockedBy} code="not_applicable" />;
 
   const Page = def.component;
   // Old screens read one sample school. Say so when the person is somewhere else.

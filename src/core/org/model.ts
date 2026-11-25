@@ -1,3 +1,7 @@
+import type { Persona, RoleDef } from '../access/engine';
+import type { FeatureConfig } from '../features/resolve';
+import type { RecordsState } from '../records/types';
+import type { StaffState } from '../staff/model';
 import type { Institution, Organization, ProfileKind, RelationshipType } from './types';
 
 /**
@@ -222,7 +226,7 @@ export interface BillingInfo {
 export const PLAN_NAMES = ['Starter', 'Standard', 'Enterprise'] as const;
 
 // ---------- History
-export type HistoryKind = 'organization' | 'institution' | 'campus' | 'hierarchy' | 'relationship' | 'link' | 'agreement' | 'policy' | 'session' | 'curriculum' | 'billing';
+export type HistoryKind = 'record' | 'staff' | 'feature' | 'role' | 'organization' | 'institution' | 'campus' | 'hierarchy' | 'relationship' | 'link' | 'agreement' | 'policy' | 'session' | 'curriculum' | 'billing';
 export const HISTORY_KIND_LABEL: Record<HistoryKind, string> = {
   organization: 'Organization',
   institution: 'Institution',
@@ -235,6 +239,10 @@ export const HISTORY_KIND_LABEL: Record<HistoryKind, string> = {
   session: 'Academic session',
   curriculum: 'Curriculum',
   billing: 'Billing',
+  feature: 'Feature setting',
+  role: 'Role',
+  staff: 'Staff',
+  record: 'Records',
 };
 
 export interface HistoryEntry {
@@ -248,6 +256,32 @@ export interface HistoryEntry {
   reason?: string;
 }
 
+// ---------- Access governance
+/** One saved change of a feature configuration, with both sides so it can be undone. */
+export interface ConfigChange {
+  id: string;
+  at: string;
+  byName: string;
+  orgId: string;
+  /** Institution id, or organization id for the default policy of the whole organization. */
+  targetId: string;
+  targetKind: 'institution' | 'organization';
+  summary: string;
+  reason?: string;
+  before: FeatureConfig;
+  after: FeatureConfig;
+}
+
+export interface AuditEvent {
+  id: string;
+  at: string;
+  orgId: string;
+  instId?: string;
+  byName: string;
+  kind: 'access_denied';
+  detail: string;
+}
+
 export interface World {
   units: OrgUnit[];
   links: LinkRequest[];
@@ -258,6 +292,8 @@ export interface World {
   policies: Record<string, Record<string, PolicySetting>>;
   billing: Record<string, BillingInfo>;
   history: HistoryEntry[];
+  configHistory: ConfigChange[];
+  audit: AuditEvent[];
 }
 
 export interface OrgState {
@@ -265,9 +301,19 @@ export interface OrgState {
   institutions: Institution[];
 }
 
+export interface AccessState {
+  roles: RoleDef[];
+  personas: Persona[];
+}
+
 export interface Snapshot {
   orgs: OrgState;
   world: World;
+  access: AccessState;
+  /** Feature configuration per institution id, and the default policy per organization id. */
+  features: Record<string, FeatureConfig>;
+  staff: StaffState;
+  records: RecordsState;
 }
 
 /** Who did it, for history lines and event logs. */

@@ -7,7 +7,7 @@ import { MODULES } from '../../core/features/registry';
 /** Everyone may open Home, see their inbox and finish tasks. Deciding approvals and editing the calendar is given by role. */
 const BASE = ['home.*', 'inbox.tasks.view', 'inbox.tasks.edit', 'calendar.*.view', 'help.*', 'profile.*'];
 
-export const DEMO_ROLES: RoleDef[] = [
+const SYSTEM_ROLES: RoleDef[] = [
   { id: 'org_admin', name: 'Organization administrator', description: 'Full control of the organization and every institution in it.', level: 'org', permissions: ['*'], system: true },
   { id: 'inst_admin', name: 'Institution administrator', description: 'Full control of one institution.', level: 'inst', permissions: ['*', '!org.*'], system: true },
   {
@@ -37,6 +37,7 @@ export const DEMO_ROLES: RoleDef[] = [
       'communication.notices.view',
     ],
     system: true,
+    scope: { default: 'assigned', byModule: { calendar: 'institution', communication: 'institution', timetable: 'institution' } },
   },
   {
     id: 'accountant',
@@ -50,6 +51,32 @@ export const DEMO_ROLES: RoleDef[] = [
   { id: 'transport_manager', name: 'Transport manager', description: 'Vehicles, routes and drivers.', level: 'inst', permissions: [...BASE, 'transport.*', 'students.directory.view'], system: true },
   { id: 'admission_officer', name: 'Admission officer', description: 'Enquiries and applications.', level: 'inst', permissions: [...BASE, 'admissions.*', 'students.directory.view', 'families.*.view'], system: true },
 ];
+
+/** Custom roles. They belong to one organization and can be changed or archived. */
+const CUSTOM_ROLES: RoleDef[] = [
+  {
+    id: 'role-front-office-1',
+    name: 'Front office',
+    description: 'Enquiries, applications and the student directory. No fees, no academics.',
+    level: 'inst',
+    permissions: [...BASE, 'admissions.*', 'students.directory.view', 'families.*.view', 'communication.notices.view'],
+    system: false,
+    ownerOrgId: 'org-horizon',
+    scope: { default: 'institution' },
+  },
+  {
+    id: 'role-exam-coordinator-1',
+    name: 'Exam coordinator',
+    description: 'Plans exams and sees results. Reads the timetable and attendance.',
+    level: 'inst',
+    permissions: [...BASE, 'examinations.*', 'academics.structure.view', 'timetable.classes.view', 'attendance.students.view'],
+    system: false,
+    ownerOrgId: 'org-sunrise',
+    scope: { default: 'institution' },
+  },
+];
+
+export const DEMO_ROLES: RoleDef[] = [...SYSTEM_ROLES, ...CUSTOM_ROLES];
 
 export const DEMO_PERSONAS: Persona[] = [
   { id: 'p-sunrise-admin', name: 'Rajesh Kumar', title: 'School administrator', email: 'rajesh.kumar@sunrise.demo', memberships: [{ scope: { type: 'inst', id: 'inst-sunrise' }, roleIds: ['inst_admin'] }] },
@@ -86,13 +113,15 @@ const FULL: FeatureConfig = { entitlements: ['*'], policy: {}, local: {} };
 
 /** DEMO DATA. Plans, trust policies and local switches. Keys are institution ids. */
 export const DEMO_FEATURE_CONFIGS: Record<string, FeatureConfig> = {
+  // Default policy of the trust. It applies to every branch the trust runs.
+  'org-horizon': { entitlements: ['*'], policy: { 'communication.notices': 'mandatory' }, local: {} },
   'inst-sunrise': { ...FULL },
   'inst-greenfield': { ...FULL },
   // Trust example: four branches, four different feature sets.
-  'inst-horizon-a': { entitlements: ['*'], policy: { 'communication.notices': 'mandatory' }, local: {} },
-  'inst-horizon-b': { entitlements: allExcept(['transport']), policy: { 'communication.notices': 'mandatory' }, local: {} },
-  'inst-horizon-c': { entitlements: ['*'], policy: { 'communication.notices': 'mandatory', inventory: 'locked_off' }, local: { library: false } },
-  'inst-horizon-d': { entitlements: ['*'], policy: { 'communication.notices': 'mandatory', reports: 'locked_off' }, local: {} },
+  'inst-horizon-a': { entitlements: ['*'], policy: {}, local: {} },
+  'inst-horizon-b': { entitlements: allExcept(['transport']), policy: {}, local: {} },
+  'inst-horizon-c': { entitlements: ['*'], policy: { inventory: 'locked_off' }, local: { library: false } },
+  'inst-horizon-d': { entitlements: ['*'], policy: { reports: 'locked_off' }, local: {} },
   'inst-meridian': { ...FULL },
   'inst-mer-sci': { ...FULL },
   'inst-mer-arts': { ...FULL },

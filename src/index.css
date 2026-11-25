@@ -281,3 +281,11 @@ html {
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
 }
+
+/* High contrast: every grey text becomes near black, borders become visible, focus is thicker. Chosen in Profile. */
+.contrast-high { --hc-text: #111; }
+.contrast-high .text-charcoal-400, .contrast-high .text-charcoal-500, .contrast-high .text-charcoal-600, .contrast-high .text-charcoal-700 { color: #111 !important; }
+.contrast-high .border-warm-200, .contrast-high .border-warm-300, .contrast-high .border-warm-100 { border-color: #555 !important; }
+.contrast-high .card, .contrast-high .input { border-color: #555 !important; }
+.contrast-high :focus-visible { outline-width: 3px !important; }
+.contrast-high a:not(.btn-primary):not(.btn-secondary) { text-decoration: underline; }

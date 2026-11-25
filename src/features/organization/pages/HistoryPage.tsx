@@ -10,6 +10,7 @@ import type { Column } from '../../../shared/ui/DataTable';
 import { SelectField, TextField } from '../../../shared/ui/Field';
 import { PageHeader } from '../../../shared/ui/Layout';
 import { useOrgData, useWorld } from '../hooks';
+import { formatDateTime } from '../../../core/i18n/format';
 
 /** What a parent organization may read about an institution that runs independently. Its internal edits stay private. */
 const PARENT_VISIBLE: HistoryKind[] = ['link', 'relationship', 'agreement'];
@@ -38,7 +39,7 @@ export default function HistoryPage() {
   const nameOf = (id?: string) => (id ? institutions.find((item) => item.id === id)?.shortName ?? id : '');
 
   const columns: Column<HistoryEntry>[] = [
-    { key: 'at', header: 'When', sortable: true, accessor: (row) => row.at, cell: (row) => new Date(row.at).toLocaleString('en', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), exportValue: (row) => row.at },
+    { key: 'at', header: 'When', sortable: true, accessor: (row) => row.at, cell: (row) => formatDateTime(row.at), exportValue: (row) => row.at },
     { key: 'by', header: 'Who', sortable: true, accessor: (row) => row.byName },
     { key: 'kind', header: 'Area', sortable: true, accessor: (row) => HISTORY_KIND_LABEL[row.kind], cell: (row) => <Badge>{HISTORY_KIND_LABEL[row.kind]}</Badge> },
     { key: 'summary', header: 'What changed', accessor: (row) => row.summary, className: 'min-w-[16rem]' },
