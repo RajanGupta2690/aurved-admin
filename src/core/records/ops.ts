@@ -165,7 +165,8 @@ export function setStatus(snap: Snapshot, def: CollectionDef, recordId: string, 
   const problem = def.rules?.({ ...row.data, __status: status }, ctx) ?? null;
   if (problem) return fail(problem);
   const next: RecordRow = { ...row, status, updatedAt: now, history: [...row.history, { at: now, by: actor.name, summary: `Status: ${current.label} to ${target.label}.`, reason: reason?.trim() || undefined }] };
-  return { ok: true, snap: put(snap, def, next) };
+  const saved = put(snap, def, next);
+  return { ok: true, snap: def.afterStatus ? def.afterStatus(saved, next, actor, now) : saved };
 }
 
 export function setArchived(snap: Snapshot, def: CollectionDef, recordId: string, archived: boolean, actor: Actor, now: string, reason?: string): Res {

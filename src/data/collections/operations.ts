@@ -1,6 +1,7 @@
 import type { CollectionDef, ModuleGroup } from '../../core/records/types';
 import { f, flow, GRN, grnStaff, seed, st, SUN, sunStaff } from './helpers';
 import { currentRegion } from '../../core/i18n/format';
+import { endEventDuties } from '../../core/staff/eventDuties';
 
 // ============================================================ finance (replaces the old fees screen)
 const feeHeads: CollectionDef = {
@@ -281,6 +282,7 @@ const events: CollectionDef = {
   dueField: 'date',
   actions: ['approve'],
   rules: (data, ctx) => (ctx.isNew && String(data.date) < ctx.today ? 'The date cannot be in the past.' : null),
+  afterStatus: (snap, row, actor, now) => (row.status === 'held' ? endEventDuties(snap, row.id, 'was held', actor, now) : row.status === 'cancelled' ? endEventDuties(snap, row.id, 'was cancelled', actor, now) : snap),
   seeds: [seed(SUN, { title: 'Annual sports day', kind: 'sports', date: '2027-01-15', owner: sunStaff(3), budget: 150000, expected: 900 }, 'approved'), seed(GRN, { title: 'Tech fest', kind: 'academic', date: '2027-02-20', owner: grnStaff(3), budget: 300000 }, 'proposed')],
 };
 

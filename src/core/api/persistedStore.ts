@@ -5,7 +5,7 @@ import { useSyncExternalStore } from 'react';
  * It stands in for an API. Change DEMO_DATA_VERSION whenever seed data changes shape,
  * so old saved data is not mixed with new seeds.
  */
-export const DEMO_DATA_VERSION = 'v6';
+export const DEMO_DATA_VERSION = 'v7';
 const PREFIX = `aurved.demo.${DEMO_DATA_VERSION}.`;
 
 export interface Store<T> {

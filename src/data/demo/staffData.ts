@@ -187,6 +187,30 @@ export function seedStaff(): StaffState {
   const teacher = members.find((member) => member.accountId === 'p-sunrise-teacher');
   if (principal) duties.push({ id: 'duty-1', instId: 'inst-sunrise', staffId: principal.id, title: 'Exam coordinator', from: '2025-06-01', status: 'active' });
   if (teacher) duties.push({ id: 'duty-2', instId: 'inst-sunrise', staffId: teacher.id, title: 'Class teacher', from: '2025-06-01', note: 'Class 1-A', status: 'active' });
+  // What each person does besides the designation: subjects they can take, or work area and shift.
+  const AREA: Record<string, string> = { accountant: 'Accounts', librarian: 'Library', admin: 'Administration', clerk: 'Reception', driver: 'Transport' };
+  members.forEach((member) => {
+    if (member.employment.category === 'teaching') {
+      const taken = Array.from(new Set(assignments.filter((item) => item.staffId === member.id).map((item) => item.subject)));
+      const bank = banks[member.instId];
+      const subjects = taken.length > 0 ? taken : bank ? [bank.subjects[0], bank.subjects[1]].filter(Boolean) : [];
+      if (subjects.length > 0) member.work = { subjects };
+    } else {
+      const key = member.employment.designationId.split('-').pop() ?? '';
+      member.work = { area: AREA[key] ?? 'Administration', shift: key === 'driver' ? 'rotational' : 'day' };
+    }
+  });
+  // Jobs at the events that exist in the Events seed (rec-events-1 is the Sunrise sports day, rec-events-2 the Greenfield tech fest).
+  const sunriseStaff = members.filter((member) => member.instId === 'inst-sunrise' && member.employment.status === 'active');
+  const sunriseTeachers = sunriseStaff.filter((member) => member.employment.category === 'teaching' && member.id !== teacher?.id);
+  const sunriseOthers = sunriseStaff.filter((member) => member.employment.category === 'non_teaching');
+  const eventJob = (id: string, member: StaffMember | undefined, eventId: string, eventTitle: string, role: string, date: string, instId: string) => {
+    if (member) duties.push({ id, instId, staffId: member.id, title: role, role, eventId, eventTitle, from: date, to: date, status: 'active' });
+  };
+  eventJob('duty-3', teacher, 'rec-events-1', 'Annual sports day', 'Coordinator', '2027-01-15', 'inst-sunrise');
+  eventJob('duty-4', sunriseTeachers[0], 'rec-events-1', 'Annual sports day', 'First aid', '2027-01-15', 'inst-sunrise');
+  eventJob('duty-5', sunriseOthers[0], 'rec-events-1', 'Annual sports day', 'Registration desk', '2027-01-15', 'inst-sunrise');
+  eventJob('duty-6', members.find((member) => member.instId === 'inst-greenfield' && member.employment.category === 'teaching' && member.employment.status === 'active'), 'rec-events-2', 'Tech fest', 'Judge', '2027-02-20', 'inst-greenfield');
   const delegations: Delegation[] = [];
   return {
     members,

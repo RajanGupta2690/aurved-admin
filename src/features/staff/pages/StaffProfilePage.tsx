@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Plus, Trash2 } from 'lucide-react';
 import { useStore } from '../../../core/api/persistedStore';
 import { accessStore } from '../../../core/api/stores';
@@ -20,6 +20,7 @@ import { Alert, EmptyState } from '../../../shared/ui/Feedback';
 import { Card, DescriptionList, PageHeader, TabPanel, Tabs, Timeline } from '../../../shared/ui/Layout';
 import { useApply } from '../../organization/hooks';
 import { ExitDialog, TransferDialog } from '../components/ExitDialogs';
+import ResponsibilitiesTab from '../components/ResponsibilitiesTab';
 import StaffNav from '../components/StaffNav';
 import { useCurrentSessionId, useInstStaff } from '../hooks';
 
@@ -46,7 +47,8 @@ function Profile({ member, events }: { member: StaffMember; events: Array<{ id: 
   const sessionId = useCurrentSessionId();
   const navigate = useNavigate();
   const apply = useApply();
-  const [tab, setTab] = useState('overview');
+  const [params] = useSearchParams();
+  const [tab, setTab] = useState(() => (['overview', 'responsibilities', 'employment', 'background', 'documents', 'access', 'activity'].includes(params.get('tab') ?? '') ? (params.get('tab') as string) : 'overview'));
   const [exiting, setExiting] = useState<StaffMember | null>(null);
   const [transferring, setTransferring] = useState<StaffMember | null>(null);
   const [leave, setLeave] = useState<'on_leave' | 'active' | null>(null);
@@ -96,6 +98,7 @@ function Profile({ member, events }: { member: StaffMember; events: Array<{ id: 
         onChange={setTab}
         items={[
           { id: 'overview', label: 'Overview' },
+          { id: 'responsibilities', label: 'Responsibilities', badge: assignments.length + duties.length || undefined },
           { id: 'employment', label: 'Employment' },
           { id: 'background', label: 'Qualifications and experience' },
           { id: 'documents', label: 'Documents', badge: gaps.length > 0 ? `${gaps.length} missing` : undefined },
@@ -145,6 +148,7 @@ function Profile({ member, events }: { member: StaffMember; events: Array<{ id: 
                 {duties.map((duty) => (
                   <li key={duty.id}>
                     Duty: {duty.title}
+                    {duty.eventTitle ? ` at ${duty.eventTitle}` : ''}
                     {duty.note ? ` (${duty.note})` : ''}
                   </li>
                 ))}
@@ -164,6 +168,10 @@ function Profile({ member, events }: { member: StaffMember; events: Array<{ id: 
             </Card>
           )}
         </div>
+      </TabPanel>
+
+      <TabPanel id="responsibilities" value={tab}>
+        <ResponsibilitiesTab member={member} />
       </TabPanel>
 
       <TabPanel id="employment" value={tab}>

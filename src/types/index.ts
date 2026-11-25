@@ -125,6 +125,16 @@ export interface Parent {
   guardianRelation?: string;
   address: string;
   studentIds: string[];
+  /** Who pays the fees. Must be a person who is on the record. */
+  feePayer?: 'father' | 'mother' | 'guardian';
+  /** Someone to call first in an emergency. Does not have to be a parent. */
+  emergencyName?: string;
+  emergencyPhone?: string;
+  emergencyRelation?: string;
+  /** How the school should reach the family first. */
+  contactPreference?: 'call' | 'sms' | 'whatsapp' | 'email';
+  /** Custody order or release limit. Staff must read it before handing a child over. */
+  restrictedNote?: string;
 }
 
 export interface Teacher {

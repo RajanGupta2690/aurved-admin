@@ -8,7 +8,8 @@ import type { Res } from '../org/ops';
 import { isExternal, nextId, normalizeName, slugify } from '../org/rules';
 import type { Institution } from '../org/types';
 import { DEFAULT_STAFF_POLICY, isExited } from './model';
-import type { Delegation, Department, Designation, Duty, EmploymentType, Experience, Qualification, StaffCategory, StaffDocument, StaffMember, StaffPolicy, StaffStatus, TeachingAssignment } from './model';
+import type { RecordRow } from '../records/types';
+import type { Delegation, Department, Designation, Duty, EmploymentType, Experience, Qualification, StaffCategory, StaffDocument, StaffMember, StaffPolicy, StaffStatus, StaffWork, TeachingAssignment } from './model';
 
 /** Changes to staff records. Pure functions, same style as org/ops.ts. */
 const fail = (error: string): { ok: false; error: string } => ({ ok: false, error });
@@ -74,6 +75,10 @@ export interface NewStaffInput {
   joinDate: string;
   type: EmploymentType;
   campusId?: string;
+  /** Subjects for teaching staff. Work area and shift for the others. */
+  work?: StaffWork;
+  /** The highest qualification, added to the record as the first entry. */
+  qualification?: { degree: string; institution?: string; year?: number };
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -97,6 +102,12 @@ export function staffProblems(snap: Snapshot, input: NewStaffInput, ignoreId?: s
     if (!boss || boss.instId !== input.instId || isExited(boss.employment.status)) return 'The reporting person must be current staff of this institution.';
     if (ignoreId && wouldCycle(snap.staff.members, ignoreId, input.reportsToId)) return 'This would make people report to each other in a circle.';
   }
+  if (input.qualification && input.qualification.degree.trim().length > 0) {
+    if (input.qualification.degree.trim().length < 2) return 'Enter the qualification, for example B.Ed.';
+    const year = input.qualification.year;
+    if (year !== undefined && !(Number.isInteger(year) && year >= 1950 && year <= Number(input.joinDate.slice(0, 4)))) return 'The qualification year must be between 1950 and the joining year.';
+  }
+  if (input.work?.shift && !['day', 'morning', 'evening', 'rotational'].includes(input.work.shift)) return 'Choose a shift from the list.';
   if (input.campusId && !inst.campuses.some((campus) => campus.id === input.campusId && (campus.status ?? 'active') === 'active')) return 'Choose an active campus.';
   const others = snap.staff.members.filter((member) => member.instId === input.instId && member.id !== ignoreId && !isExited(member.employment.status));
   const sameEmail = others.find((member) => member.person.email.toLowerCase() === input.email.trim().toLowerCase());
@@ -111,6 +122,13 @@ export function nextEmployeeId(snap: Snapshot, instId: string): string {
   const prefix = policyOf(snap, instId).employeeIdPrefix;
   const used = snap.staff.members.filter((member) => member.instId === instId).map((member) => Number(member.employment.employeeId.replace(/\D/g, '')) || 0);
   return `${prefix}${String(Math.max(0, ...used) + 1).padStart(3, '0')}`;
+}
+
+/** Keeps only what applies: subjects for teaching staff, area and shift for the others. */
+function workFor(category: StaffCategory, work?: StaffWork): StaffWork | undefined {
+  if (!work) return undefined;
+  if (category === 'teaching') return work.subjects && work.subjects.length > 0 ? { subjects: Array.from(new Set(work.subjects)) } : undefined;
+  return work.area || work.shift ? { area: work.area || undefined, shift: work.shift || undefined } : undefined;
 }
 
 export function addStaff(snap: Snapshot, input: NewStaffInput, actor: Actor, now: string): Res<{ staffId: string }> {
@@ -135,10 +153,11 @@ export function addStaff(snap: Snapshot, input: NewStaffInput, actor: Actor, now
       status: input.type === 'permanent' && policy.probationMonths > 0 && addMonths(input.joinDate, policy.probationMonths) > todayOf(now) ? 'probation' : 'active',
       campusId: campus,
     },
-    qualifications: [],
+    qualifications: input.qualification && input.qualification.degree.trim() ? [{ id: `q-${id}-1`, degree: input.qualification.degree.trim(), institution: input.qualification.institution?.trim() ?? '', year: input.qualification.year ?? 0 }] : [],
     experience: [],
     documents: [],
     accountId: null,
+    work: workFor(input.category, input.work),
   };
   const next = log(withMembers(snap, [...snap.staff.members, member]), { instId: input.instId, staffId: id, summary: `Added ${member.person.fullName} (${member.employment.employeeId}).` }, actor, now, true);
   return { ok: true, snap: next, staffId: id };
@@ -147,6 +166,7 @@ export function addStaff(snap: Snapshot, input: NewStaffInput, actor: Actor, now
 export interface StaffPatch {
   person?: Partial<StaffMember['person']>;
   employment?: Partial<Pick<StaffMember['employment'], 'employeeId' | 'category' | 'designationId' | 'departmentId' | 'reportsToId' | 'joinDate' | 'type' | 'campusId'>>;
+  work?: StaffWork;
 }
 
 export function updateStaff(snap: Snapshot, staffId: string, patch: StaffPatch, actor: Actor, now: string): Res {
@@ -154,6 +174,7 @@ export function updateStaff(snap: Snapshot, staffId: string, patch: StaffPatch, 
   if (!member) return fail('This person does not exist.');
   if (isExited(member.employment.status)) return fail('This person has left. Their record is kept as it was.');
   const merged: StaffMember = { ...member, person: { ...member.person, ...patch.person }, employment: { ...member.employment, ...patch.employment } };
+  if (patch.work) merged.work = workFor(merged.employment.category, patch.work);
   const problem = staffProblems(
     snap,
     {
@@ -305,16 +326,49 @@ export function endAssignment(snap: Snapshot, id: string, actor: Actor, now: str
   return { ok: true, snap: log({ ...snap, staff: { ...snap.staff, assignments } }, { instId: assignment.instId, staffId: assignment.staffId, summary: `Ended ${assignment.subject} in ${assignment.group} for ${memberOf(snap, assignment.staffId)?.person.fullName}.` }, actor, now) };
 }
 
-export function addDuty(snap: Snapshot, input: { instId: string; staffId: string; title: string; from: string; to?: string; note?: string }, actor: Actor, now: string): Res {
+/** Events of an institution that can still need people: not held, not cancelled, not archived. */
+export function openEventsOf(snap: Snapshot, instId: string): RecordRow[] {
+  return (snap.records.events ?? []).filter((row) => row.scopeId === instId && !row.archived && row.status !== 'held' && row.status !== 'cancelled');
+}
+
+export interface NewDutyInput {
+  instId: string;
+  staffId: string;
+  /** The name of the duty. For an event duty this is the job at the event and can be left empty when role is given. */
+  title: string;
+  from: string;
+  to?: string;
+  note?: string;
+  /** An event of the Events module. The duty then ends when the event is held or cancelled. */
+  eventId?: string;
+  role?: string;
+}
+
+export function addDuty(snap: Snapshot, input: NewDutyInput, actor: Actor, now: string): Res {
   const member = memberOf(snap, input.staffId);
   if (!member || member.instId !== input.instId) return fail('Choose a person of this institution.');
   if (isExited(member.employment.status)) return fail(`${member.person.fullName} has left.`);
-  if (input.title.trim().length < 3) return fail('Name the duty.');
+  const event = input.eventId ? openEventsOf(snap, input.instId).find((row) => row.id === input.eventId) : undefined;
+  if (input.eventId && !event) return fail('Choose an event of this institution that is not held or cancelled.');
+  const title = (event ? input.role ?? input.title : input.title).trim();
+  if (title.length < 3) return fail(event ? 'Say what the person does at the event.' : 'Name the duty.');
   if (!isoDate(input.from)) return fail('Choose the start date.');
   if (input.to && (!isoDate(input.to) || input.to < input.from)) return fail('The end date cannot be before the start.');
-  if (snap.staff.duties.some((duty) => duty.staffId === input.staffId && duty.status === 'active' && duty.title.toLowerCase() === input.title.trim().toLowerCase() && (duty.note ?? '') === (input.note ?? ''))) return fail('This person already has this duty.');
-  const duty: Duty = { id: nextId('duty', snap.staff.duties.map((item) => item.id)), instId: input.instId, staffId: input.staffId, title: input.title.trim(), from: input.from, to: input.to || undefined, note: input.note?.trim() || undefined, status: 'active' };
-  return { ok: true, snap: log({ ...snap, staff: { ...snap.staff, duties: [...snap.staff.duties, duty] } }, { instId: input.instId, staffId: input.staffId, summary: `${member.person.fullName} was given the duty "${duty.title}".` }, actor, now) };
+  const sameEvent = (duty: Duty) => (duty.eventId ?? '') === (event?.id ?? '');
+  if (snap.staff.duties.some((duty) => duty.staffId === input.staffId && duty.status === 'active' && sameEvent(duty) && duty.title.toLowerCase() === title.toLowerCase() && (duty.note ?? '') === (input.note?.trim() ?? ''))) return fail(event ? 'This person already has this job at this event.' : 'This person already has this duty.');
+  const duty: Duty = {
+    id: nextId('duty', snap.staff.duties.map((item) => item.id)),
+    instId: input.instId,
+    staffId: input.staffId,
+    title,
+    from: input.from,
+    to: input.to || undefined,
+    note: input.note?.trim() || undefined,
+    status: 'active',
+    ...(event ? { eventId: event.id, eventTitle: String(event.data.title ?? 'Event'), role: title } : {}),
+  };
+  const what = event ? `the duty "${title}" for ${duty.eventTitle}` : `the duty "${title}"`;
+  return { ok: true, snap: log({ ...snap, staff: { ...snap.staff, duties: [...snap.staff.duties, duty] } }, { instId: input.instId, staffId: input.staffId, summary: `${member.person.fullName} was given ${what}.` }, actor, now) };
 }
 
 export function endDuty(snap: Snapshot, id: string, actor: Actor, now: string): Res {

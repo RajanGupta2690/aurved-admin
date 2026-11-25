@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { Plus, Search, Download, Eye, Trash2 } from 'lucide-react';
 import { classes } from '../../../data/mockData';
 import { studentActions, useStudents } from '../../../core/api/studentStore';
+import { familyActions } from '../../../core/api/familyStore';
+import { formToParentFields, nextStudentCode } from '../../../core/api/familyLogic';
+import StudentForm from '../components/StudentForm';
+import type { ParentChoice, StudentFormValues } from '../components/StudentForm';
 import type { Student } from '../../../types';
 import Modal from '../../../shared/components/Modal';
 import DeleteConfirmation from '../../../shared/components/DeleteConfirmation';
@@ -10,6 +14,7 @@ import Toast from '../../../shared/components/Toast';
 
 export default function StudentsListPage() {
   const students = useStudents();
+  const [year] = useState(() => new Date().getFullYear());
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -34,18 +39,15 @@ export default function StudentsListPage() {
     return cls?.sections.find(s => s.id === sectionId)?.name || '';
   };
 
-  const handleAddStudent = (form: StudentFormData) => {
-    const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
-    if (students.some((student) => student.admissionNumber === form.admissionNumber)) {
-      setToast({ show: true, type: 'error', message: `Admission number ${form.admissionNumber} is already used.` });
-      return;
-    }
+  const handleAddStudent = (form: StudentFormValues, parent: ParentChoice) => {
+    const fullName = `${form.firstName} ${form.lastName}`.trim();
+    const id = `student-${Date.now()}`;
     const today = new Date().toISOString().slice(0, 10);
     studentActions.add({
-      id: `student-${Date.now()}`,
+      id,
       admissionNumber: form.admissionNumber,
-      firstName: form.firstName.trim(),
-      lastName: form.lastName.trim(),
+      firstName: form.firstName,
+      lastName: form.lastName,
       fullName,
       dateOfBirth: form.dateOfBirth,
       gender: form.gender as Student['gender'],
@@ -54,8 +56,8 @@ export default function StudentsListPage() {
       city: '',
       state: '',
       pincode: '',
-      email: form.email || undefined,
-      phone: form.phone || undefined,
+      email: form.email.trim() || undefined,
+      phone: form.phone.trim() || undefined,
       admissionDate: today,
       academicSessionId: 'session-1',
       classId: form.classId,
@@ -64,8 +66,16 @@ export default function StudentsListPage() {
       status: 'active',
       parentId: '',
     });
+    let note = '';
+    if (parent.kind === 'new') {
+      familyActions.createAndLink(id, formToParentFields(parent.values));
+      note = ' Parents were added and linked.';
+    } else if (parent.kind === 'existing') {
+      familyActions.link(id, parent.parentId);
+      note = ' Linked to the chosen family.';
+    }
     setShowAddModal(false);
-    setToast({ show: true, type: 'success', message: `${fullName} was added.` });
+    setToast({ show: true, type: 'success', message: `${fullName} was added with school student ID ${form.admissionNumber}.${note}` });
   };
   const handleDeleteStudent = () => {
     if (!selectedStudent) return;
@@ -75,7 +85,7 @@ export default function StudentsListPage() {
   };
   const handleExport = () => {
     const quote = (value: string) => `"${value.replace(/"/g, '""')}"`;
-    const header = ['Admission number', 'Name', 'Class', 'Section', 'Roll number', 'Gender', 'Status'];
+    const header = ['School student ID', 'Name', 'Class', 'Section', 'Roll number', 'Gender', 'Status'];
     const rows = filteredStudents.map((student) => [student.admissionNumber, student.fullName, getClassName(student.classId), getSectionName(student.classId, student.sectionId), student.rollNumber, student.gender, student.status]);
     const text = [header, ...rows].map((row) => row.map((cell) => quote(String(cell ?? ''))).join(',')).join('\n');
     const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
@@ -109,7 +119,7 @@ export default function StudentsListPage() {
             <input
               type="text"
               aria-label="Search students"
-              placeholder="Search by name or admission number..."
+              placeholder="Search by name or school student ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="input pl-10"
@@ -173,7 +183,7 @@ export default function StudentsListPage() {
             <thead className="bg-warm-50 border-b border-warm-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-charcoal-700 uppercase tracking-wider">
-                  Admission No.
+                  School student ID
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-charcoal-700 uppercase tracking-wider">
                   Student Name
@@ -270,7 +280,7 @@ export default function StudentsListPage() {
         title="Add New Student"
         size="lg"
       >
-        <StudentForm onSubmit={handleAddStudent} onCancel={() => setShowAddModal(false)} />
+        <StudentForm mode="add" students={students} nextCode={nextStudentCode(students, year)} onSubmit={handleAddStudent} onCancel={() => setShowAddModal(false)} />
       </Modal>
 
       {/* Delete Confirmation */}
@@ -291,239 +301,5 @@ export default function StudentsListPage() {
         message={toast.message}
       />
     </div>
-  );
-}
-
-// Student Form Component
-type StudentFormData = {
-  firstName: string; lastName: string; email: string; phone: string; dateOfBirth: string; gender: string; classId: string; sectionId: string; admissionNumber: string; rollNumber: string; bloodGroup: string; address: string;
-};
-
-function StudentForm({ onSubmit, onCancel }: { onSubmit: (data: StudentFormData) => void; onCancel: () => void }) {
-  const [formData, setFormData] = useState(() => ({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    dateOfBirth: '',
-    gender: 'male',
-    classId: classes[0]?.id || '',
-    sectionId: '',
-    admissionNumber: `ADM${Date.now()}`,
-    rollNumber: '',
-    bloodGroup: '',
-    address: '',
-  }));
-
-  const selectedClass = classes.find(c => c.id === formData.classId);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* First Name */}
-        <div>
-          <label htmlFor="sf-1" className="block text-sm font-medium text-charcoal-700 mb-2">
-            First Name *
-          </label>
-          <input id="sf-1"
-            type="text"
-            required
-            value={formData.firstName}
-            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-            className="input"
-            placeholder="Enter first name"
-          />
-        </div>
-
-        {/* Last Name */}
-        <div>
-          <label htmlFor="sf-2" className="block text-sm font-medium text-charcoal-700 mb-2">
-            Last Name *
-          </label>
-          <input id="sf-2"
-            type="text"
-            required
-            value={formData.lastName}
-            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-            className="input"
-            placeholder="Enter last name"
-          />
-        </div>
-
-        {/* Email */}
-        <div>
-          <label htmlFor="sf-3" className="block text-sm font-medium text-charcoal-700 mb-2">
-            Email
-          </label>
-          <input id="sf-3"
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="input"
-            placeholder="student@email.com"
-          />
-        </div>
-
-        {/* Phone */}
-        <div>
-          <label htmlFor="sf-4" className="block text-sm font-medium text-charcoal-700 mb-2">
-            Phone
-          </label>
-          <input id="sf-4"
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="input"
-            placeholder="+91 98765 43210"
-          />
-        </div>
-
-        {/* Date of Birth */}
-        <div>
-          <label htmlFor="sf-5" className="block text-sm font-medium text-charcoal-700 mb-2">
-            Date of Birth *
-          </label>
-          <input id="sf-5"
-            type="date"
-            required
-            value={formData.dateOfBirth}
-            onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-            className="input"
-          />
-        </div>
-
-        {/* Gender */}
-        <div>
-          <label htmlFor="sf-6" className="block text-sm font-medium text-charcoal-700 mb-2">
-            Gender *
-          </label>
-          <select id="sf-6"
-            required
-            value={formData.gender}
-            onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-            className="input"
-          >
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-
-        {/* Class */}
-        <div>
-          <label htmlFor="sf-7" className="block text-sm font-medium text-charcoal-700 mb-2">
-            Class *
-          </label>
-          <select id="sf-7"
-            required
-            value={formData.classId}
-            onChange={(e) => setFormData({ ...formData, classId: e.target.value, sectionId: '' })}
-            className="input"
-          >
-            {classes.map(cls => (
-              <option key={cls.id} value={cls.id}>{cls.name}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Section */}
-        <div>
-          <label htmlFor="sf-8" className="block text-sm font-medium text-charcoal-700 mb-2">
-            Section *
-          </label>
-          <select id="sf-8"
-            required
-            value={formData.sectionId}
-            onChange={(e) => setFormData({ ...formData, sectionId: e.target.value })}
-            className="input"
-            disabled={!selectedClass}
-          >
-            <option value="">Select Section</option>
-            {selectedClass?.sections.map(sec => (
-              <option key={sec.id} value={sec.id}>Section {sec.name}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Admission Number */}
-        <div>
-          <label htmlFor="sf-9" className="block text-sm font-medium text-charcoal-700 mb-2">
-            Admission Number
-          </label>
-          <input id="sf-9"
-            type="text"
-            value={formData.admissionNumber}
-            onChange={(e) => setFormData({ ...formData, admissionNumber: e.target.value })}
-            className="input"
-            readOnly
-          />
-        </div>
-
-        {/* Roll Number */}
-        <div>
-          <label htmlFor="sf-10" className="block text-sm font-medium text-charcoal-700 mb-2">
-            Roll Number
-          </label>
-          <input id="sf-10"
-            type="text"
-            value={formData.rollNumber}
-            onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })}
-            className="input"
-            placeholder="Enter roll number"
-          />
-        </div>
-
-        {/* Blood Group */}
-        <div>
-          <label htmlFor="sf-11" className="block text-sm font-medium text-charcoal-700 mb-2">
-            Blood Group
-          </label>
-          <select id="sf-11"
-            value={formData.bloodGroup}
-            onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
-            className="input"
-          >
-            <option value="">Select Blood Group</option>
-            <option value="A+">A+</option>
-            <option value="A-">A-</option>
-            <option value="B+">B+</option>
-            <option value="B-">B-</option>
-            <option value="AB+">AB+</option>
-            <option value="AB-">AB-</option>
-            <option value="O+">O+</option>
-            <option value="O-">O-</option>
-          </select>
-        </div>
-
-        {/* Address */}
-        <div className="md:col-span-2">
-          <label htmlFor="sf-12" className="block text-sm font-medium text-charcoal-700 mb-2">
-            Address
-          </label>
-          <textarea id="sf-12"
-            value={formData.address}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            className="input"
-            rows={3}
-            placeholder="Enter full address"
-          />
-        </div>
-      </div>
-
-      {/* Form Actions */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-warm-200">
-        <button type="button" onClick={onCancel} className="btn-secondary">
-          Cancel
-        </button>
-        <button type="submit" className="btn-primary">
-          Add Student
-        </button>
-      </div>
-    </form>
   );
 }

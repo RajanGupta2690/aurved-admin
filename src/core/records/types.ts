@@ -1,5 +1,5 @@
 import type { Action } from '../access/match';
-import type { Snapshot } from '../org/model';
+import type { Actor, Snapshot } from '../org/model';
 import type { StaffMember } from '../staff/model';
 import type { Institution, ProfileKind } from '../org/types';
 
@@ -97,6 +97,8 @@ export interface CollectionDef {
   dependsOn?: string[];
   /** After a new record is saved: update other records that depend on it. */
   after?: (snap: Snapshot, row: RecordRow) => Snapshot;
+  /** After a record moves to another status: update other records that depend on it. */
+  afterStatus?: (snap: Snapshot, row: RecordRow, actor: Actor, now: string) => Snapshot;
   /** Composite uniqueness, such as staff and month. */
   uniqueTogether?: Array<{ keys: string[]; message: string }>;
   /** Demo records. scopeId is an institution or organization id. */

@@ -148,6 +148,72 @@ export default function ParentFormFields({ idPrefix, values, errors, onChange }:
           </p>
         )}
       </div>
+
+      <fieldset className="space-y-3">
+        <legend className="font-semibold text-charcoal-950 mb-3">Fees and contact</legend>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor={id('feePayer')} className="block text-sm font-medium text-charcoal-800 mb-1.5">
+              Who pays the fees
+            </label>
+            <select
+              id={id('feePayer')}
+              value={values.feePayer}
+              onChange={(event) => onChange('feePayer', event.target.value)}
+              aria-invalid={errors.feePayer ? true : undefined}
+              aria-describedby={errors.feePayer ? `${id('feePayer')}-error` : undefined}
+              className={`input ${errors.feePayer ? 'input-error' : ''}`}
+            >
+              <option value="">Not decided</option>
+              <option value="father">Father</option>
+              <option value="mother">Mother</option>
+              <option value="guardian">Guardian</option>
+            </select>
+            {errors.feePayer && (
+              <p id={`${id('feePayer')}-error`} className="mt-1 text-xs text-danger-700">
+                {errors.feePayer}
+              </p>
+            )}
+          </div>
+          <div>
+            <label htmlFor={id('contactPreference')} className="block text-sm font-medium text-charcoal-800 mb-1.5">
+              Reach the family first by
+            </label>
+            <select id={id('contactPreference')} value={values.contactPreference} onChange={(event) => onChange('contactPreference', event.target.value)} className="input">
+              <option value="">No preference</option>
+              <option value="call">Phone call</option>
+              <option value="sms">SMS</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="email">Email</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset className="space-y-3">
+        <legend className="font-semibold text-charcoal-950 mb-1">Emergency contact (optional)</legend>
+        <p className="text-sm text-charcoal-600">Someone to call if the parents cannot be reached.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {text('emergencyName', 'Name')}
+          {text('emergencyPhone', 'Mobile number', { type: 'tel' })}
+          {text('emergencyRelation', 'Relation', { placeholder: 'For example Neighbour' })}
+        </div>
+      </fieldset>
+
+      <div>
+        <label htmlFor={id('restrictedNote')} className="block text-sm font-medium text-charcoal-800 mb-1.5">
+          Custody or release limit (optional)
+        </label>
+        <textarea
+          id={id('restrictedNote')}
+          rows={2}
+          value={values.restrictedNote}
+          onChange={(event) => onChange('restrictedNote', event.target.value)}
+          className="input"
+          placeholder="For example: the child must not be handed to the father. Court order dated 4 March."
+        />
+        <p className="mt-1 text-xs text-charcoal-600">Staff see this before a child is released. Pickup people are managed in School operations, Pickup authorization.</p>
+      </div>
     </div>
   );
 }

@@ -65,10 +65,16 @@ export default function StaffDirectoryPage() {
         breadcrumbs={[{ label: inst.shortName, to: path() }, { label: 'Staff' }]}
         actions={
           can('staff.directory.create').allowed ? (
-            <Link to={path('staff/new')} className="btn-primary inline-flex items-center gap-2">
-              <UserPlus size={18} aria-hidden="true" />
-              Add staff
-            </Link>
+            <>
+              <Link to={`${path('staff/new')}?category=non_teaching`} className="btn-secondary inline-flex items-center gap-2">
+                <UserPlus size={18} aria-hidden="true" />
+                Add non-teaching staff
+              </Link>
+              <Link to={`${path('staff/new')}?category=teaching`} className="btn-primary inline-flex items-center gap-2">
+                <UserPlus size={18} aria-hidden="true" />
+                Add teaching staff
+              </Link>
+            </>
           ) : undefined
         }
       />

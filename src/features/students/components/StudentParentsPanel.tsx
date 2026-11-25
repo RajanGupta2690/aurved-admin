@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, Link2, Mail, MapPin, Pencil, Phone, Unlink, UserPlus, Users } from 'lucide-react';
+import { Briefcase, Link2, Mail, MapPin, Pencil, Phone, ShieldAlert, Unlink, UserPlus, Users } from 'lucide-react';
 import { useStudents } from '../../../core/api/studentStore';
 import { useFamily } from '../../../core/api/familyStore';
 import { getParentForStudent, parentFullLabel, parentPeople } from '../../../core/api/familyLogic';
@@ -18,7 +18,10 @@ type ToastState = { show: boolean; message: string };
 function PersonCard({ person }: { person: ParentPerson }) {
   return (
     <div className="rounded-xl border border-warm-200 bg-warm-50 p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-charcoal-500">{person.role}</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-medium uppercase tracking-wide text-charcoal-500">{person.role}</p>
+        {person.feePayer && <span className="rounded-full bg-success-50 px-2 py-0.5 text-xs font-medium text-success-700">Pays the fees</span>}
+      </div>
       <p className="mt-1 font-semibold text-charcoal-950">{person.name}</p>
       <dl className="mt-3 space-y-1.5 text-sm text-charcoal-700">
         {person.phone && (
@@ -148,6 +151,36 @@ export default function StudentParentsPanel({ student }: { student: Student }) {
             <MapPin size={16} className="mt-0.5 text-charcoal-400 shrink-0" aria-hidden="true" />
             <p>{parent.address}</p>
           </div>
+
+          {parent.restrictedNote && (
+            <div role="note" className="flex items-start gap-2 rounded-xl border border-warning-200 bg-warning-50 px-4 py-3 text-sm text-warning-800">
+              <ShieldAlert size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
+              <p>
+                <span className="font-semibold">Release limit.</span> {parent.restrictedNote}
+              </p>
+            </div>
+          )}
+
+          {(parent.emergencyName || parent.contactPreference) && (
+            <dl className="grid grid-cols-1 gap-3 rounded-xl border border-warm-200 px-4 py-3 text-sm sm:grid-cols-2">
+              {parent.emergencyName && (
+                <div>
+                  <dt className="text-charcoal-600">Emergency contact</dt>
+                  <dd className="font-medium text-charcoal-900">
+                    {parent.emergencyName}
+                    {parent.emergencyRelation ? ` (${parent.emergencyRelation})` : ''}
+                    {parent.emergencyPhone ? `, ${parent.emergencyPhone}` : ''}
+                  </dd>
+                </div>
+              )}
+              {parent.contactPreference && (
+                <div>
+                  <dt className="text-charcoal-600">Reach the family first by</dt>
+                  <dd className="font-medium text-charcoal-900">{{ call: 'Phone call', sms: 'SMS', whatsapp: 'WhatsApp', email: 'Email' }[parent.contactPreference]}</dd>
+                </div>
+              )}
+            </dl>
+          )}
 
           {siblings.length > 0 && (
             <div className="rounded-xl border border-warm-200 px-4 py-3">

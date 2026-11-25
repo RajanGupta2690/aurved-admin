@@ -47,6 +47,18 @@ export interface StaffDocument {
 
 export const DOCUMENT_TYPES = ['Identity proof', 'Address proof', 'Degree certificate', 'Experience letter', 'Appointment letter', 'Police verification', 'Medical fitness', 'Teaching licence'];
 
+export type Shift = 'day' | 'morning' | 'evening' | 'rotational';
+export const SHIFT_LABEL: Record<Shift, string> = { day: 'Day', morning: 'Morning', evening: 'Evening', rotational: 'Rotational' };
+/** Where a non-teaching person works. */
+export const WORK_AREAS = ['Administration', 'Accounts', 'Reception', 'Library', 'Laboratory', 'Transport', 'Security', 'Housekeeping', 'Maintenance', 'Medical room', 'Hostel', 'Kitchen', 'IT support'];
+
+/** What the person does besides the designation. Teaching staff list the subjects they can take. Others have a work area and shift. */
+export interface StaffWork {
+  subjects?: string[];
+  area?: string;
+  shift?: Shift;
+}
+
 export interface StaffMember {
   id: string;
   instId: string;
@@ -69,6 +81,7 @@ export interface StaffMember {
   documents: StaffDocument[];
   /** Persona id of the sign-in account. Null when the person has none. */
   accountId: string | null;
+  work?: StaffWork;
 }
 
 export interface Designation {
@@ -112,6 +125,11 @@ export interface Duty {
   to?: string;
   note?: string;
   status: 'active' | 'ended';
+  /** Set when the duty is for one event. The duty ends when the event is held or cancelled. */
+  eventId?: string;
+  eventTitle?: string;
+  /** What the person does at the event, for example Stage and sound. Also the title of the duty. */
+  role?: string;
 }
 
 export interface Delegation {
@@ -171,3 +189,6 @@ export interface StaffState {
 }
 
 export const DUTY_TITLES = ['Class teacher', 'Exam coordinator', 'Timetable in-charge', 'Admission in-charge', 'Transport in-charge', 'Sports in-charge', 'Discipline committee', 'Library in-charge', 'Examination invigilator'];
+
+/** Jobs at an event. The person can also type another. */
+export const EVENT_ROLES = ['Coordinator', 'Stage and sound', 'Registration desk', 'Discipline and crowd', 'First aid', 'Hospitality', 'Transport', 'Refreshments', 'Photography', 'Judge', 'Invigilator'];

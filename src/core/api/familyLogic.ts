@@ -31,6 +31,12 @@ export interface ParentFormValues {
   guardianPhone: string;
   guardianRelation: string;
   address: string;
+  feePayer: string;
+  emergencyName: string;
+  emergencyPhone: string;
+  emergencyRelation: string;
+  contactPreference: string;
+  restrictedNote: string;
 }
 
 export type FormErrors = Partial<Record<keyof ParentFormValues | 'form', string>>;
@@ -57,6 +63,12 @@ export function emptyParentForm(address = ''): ParentFormValues {
     guardianPhone: '',
     guardianRelation: '',
     address,
+    feePayer: '',
+    emergencyName: '',
+    emergencyPhone: '',
+    emergencyRelation: '',
+    contactPreference: '',
+    restrictedNote: '',
   };
 }
 
@@ -74,6 +86,12 @@ export function parentToForm(parent: Parent): ParentFormValues {
     guardianPhone: parent.guardianPhone ?? '',
     guardianRelation: parent.guardianRelation ?? '',
     address: parent.address ?? '',
+    feePayer: parent.feePayer ?? '',
+    emergencyName: parent.emergencyName ?? '',
+    emergencyPhone: parent.emergencyPhone ?? '',
+    emergencyRelation: parent.emergencyRelation ?? '',
+    contactPreference: parent.contactPreference ?? '',
+    restrictedNote: parent.restrictedNote ?? '',
   };
 }
 
@@ -93,6 +111,12 @@ export function formToParentFields(values: ParentFormValues): ParentFields {
     guardianPhone: optional(values.guardianPhone),
     guardianRelation: optional(values.guardianRelation),
     address: trimmed(values.address),
+    feePayer: (['father', 'mother', 'guardian'] as const).find((who) => who === values.feePayer),
+    emergencyName: optional(values.emergencyName),
+    emergencyPhone: optional(values.emergencyPhone),
+    emergencyRelation: optional(values.emergencyRelation),
+    contactPreference: (['call', 'sms', 'whatsapp', 'email'] as const).find((how) => how === values.contactPreference),
+    restrictedNote: optional(values.restrictedNote),
   };
 }
 
@@ -157,6 +181,15 @@ export function validateParentForm(values: ParentFormValues): FormErrors {
   }
   if (!values.address.trim()) errors.address = 'Address is required.';
 
+  if (values.feePayer === 'father' && !hasFather) errors.feePayer = 'The father is not on this record.';
+  if (values.feePayer === 'mother' && !hasMother) errors.feePayer = 'The mother is not on this record.';
+  if (values.feePayer === 'guardian' && !hasGuardian) errors.feePayer = 'There is no guardian on this record.';
+  if (anyFilled(values.emergencyName, values.emergencyPhone, values.emergencyRelation)) {
+    if (values.emergencyName.trim().length < 2) errors.emergencyName = 'Enter the name of the emergency contact.';
+    if (!values.emergencyPhone.trim()) errors.emergencyPhone = 'Enter the emergency contact number.';
+    else if (!isValidPhone(values.emergencyPhone.trim())) errors.emergencyPhone = 'Enter 7 to 15 digits. A leading + is allowed.';
+  }
+
   return errors;
 }
 
@@ -167,6 +200,7 @@ export function parentDisplayName(parent: Parent): string {
 }
 
 export interface ParentPerson {
+  feePayer?: boolean;
   key: 'father' | 'mother' | 'guardian';
   role: string;
   name: string;
@@ -186,6 +220,7 @@ export function parentPeople(parent: Parent): ParentPerson[] {
       phone: parent.fatherPhone || undefined,
       email: parent.fatherEmail,
       occupation: parent.fatherOccupation,
+      feePayer: parent.feePayer === 'father',
     });
   }
   if (parent.motherName) {
@@ -196,6 +231,7 @@ export function parentPeople(parent: Parent): ParentPerson[] {
       phone: parent.motherPhone,
       email: parent.motherEmail,
       occupation: parent.motherOccupation,
+      feePayer: parent.feePayer === 'mother',
     });
   }
   if (parent.guardianName) {
@@ -204,6 +240,7 @@ export function parentPeople(parent: Parent): ParentPerson[] {
       role: parent.guardianRelation ? `Guardian (${parent.guardianRelation})` : 'Guardian',
       name: parent.guardianName,
       phone: parent.guardianPhone,
+      feePayer: parent.feePayer === 'guardian',
     });
   }
   return people;
@@ -368,4 +405,37 @@ export function isFamilyState(value: unknown): value is FamilyState {
   );
   const linksOk = Object.values(candidate.links as Record<string, unknown>).every((id) => typeof id === 'string');
   return parentsOk && linksOk;
+}
+
+// ------------------------------------------------------------ student lookup
+
+const compactCode = (text: string) => text.replace(/\s+/g, '').toLowerCase();
+
+/** Finds a student by the school student ID (the admission number). Spaces and case are ignored. */
+export function findStudentByCode(students: Student[], code: string): Student | undefined {
+  const wanted = compactCode(code);
+  return wanted ? students.find((student) => compactCode(student.admissionNumber) === wanted) : undefined;
+}
+
+/** Students whose school ID or name contains the text. The exact ID comes first. */
+export function searchStudents(students: Student[], query: string, limit = 6): Student[] {
+  const text = query.trim().toLowerCase();
+  if (text.length < 2) return [];
+  const exact = findStudentByCode(students, query);
+  const rest = students.filter((student) => student.id !== exact?.id && `${student.fullName} ${student.admissionNumber}`.toLowerCase().includes(text));
+  return [...(exact ? [exact] : []), ...rest].slice(0, limit);
+}
+
+/** The next school student ID in the same pattern as the existing ones, for example SUN/2026/005. */
+export function nextStudentCode(students: Pick<Student, 'admissionNumber'>[], year: number): string {
+  const pattern = /^([A-Za-z]+)\/(\d{4})\/(\d+)$/;
+  let prefix = 'SUN';
+  let highest = 0;
+  for (const student of students) {
+    const match = pattern.exec(student.admissionNumber);
+    if (!match) continue;
+    prefix = match[1];
+    if (Number(match[2]) === year) highest = Math.max(highest, Number(match[3]));
+  }
+  return `${prefix}/${year}/${String(highest + 1).padStart(3, '0')}`;
 }

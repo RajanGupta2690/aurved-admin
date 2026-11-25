@@ -1,7 +1,11 @@
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Phone, MapPin, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Pencil, Phone, MapPin, Calendar, User } from 'lucide-react';
 import { classes, attendanceRecords, fees } from '../../../data/mockData';
-import { useStudents } from '../../../core/api/studentStore';
+import { studentActions, useStudents } from '../../../core/api/studentStore';
+import Modal from '../../../shared/components/Modal';
+import Toast from '../../../shared/components/Toast';
+import StudentForm from '../components/StudentForm';
+import type { StudentFormValues } from '../components/StudentForm';
 import StudentParentSummary from '../components/StudentParentSummary';
 import StudentParentsPanel from '../components/StudentParentsPanel';
 import { useState } from 'react';
@@ -11,6 +15,8 @@ export default function StudentDetailPage() {
   const { id } = useParams();
   const students = useStudents();
   const [activeTab, setActiveTab] = useState('overview');
+  const [editing, setEditing] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '' });
   
   const student = students.find(s => s.id === id);
   const studentClass = student ? classes.find(c => c.id === student.classId) : null;
@@ -51,10 +57,41 @@ export default function StudentDetailPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-charcoal-950">Student Details</h1>
-            <p className="text-sm text-charcoal-600 mt-1">{student.admissionNumber}</p>
+            <p className="text-sm text-charcoal-600 mt-1">School student ID: {student.admissionNumber}</p>
           </div>
         </div>
+        <button type="button" className="btn-primary flex items-center gap-2" onClick={() => setEditing(true)}>
+          <Pencil size={18} aria-hidden="true" />
+          Edit student
+        </button>
       </div>
+      <Modal isOpen={editing} onClose={() => setEditing(false)} title="Edit student" size="lg">
+        <StudentForm
+          mode="edit"
+          initial={student}
+          students={students}
+          onCancel={() => setEditing(false)}
+          onSubmit={(form: StudentFormValues) => {
+            studentActions.update(student.id, {
+              firstName: form.firstName,
+              lastName: form.lastName,
+              fullName: `${form.firstName} ${form.lastName}`.trim(),
+              dateOfBirth: form.dateOfBirth,
+              gender: form.gender as typeof student.gender,
+              bloodGroup: form.bloodGroup || undefined,
+              address: form.address,
+              email: form.email.trim() || undefined,
+              phone: form.phone.trim() || undefined,
+              classId: form.classId,
+              sectionId: form.sectionId,
+              rollNumber: form.rollNumber,
+            });
+            setEditing(false);
+            setToast({ show: true, message: 'Student details saved.' });
+          }}
+        />
+      </Modal>
+      <Toast show={toast.show} type="success" message={toast.message} onClose={() => setToast((previous) => ({ ...previous, show: false }))} />
 
       {/* Student Profile Card */}
       <div className="card">
