@@ -1,0 +1,1 @@
+import{L as e,rt as t}from"./index-o3aGWKE9.js";var n={awaiting_consent:`warning`,in_verification:`info`,awaiting_approval:`info`,approved:`success`,rejected:`danger`,withdrawn:`neutral`};function r(n,r,i,a){var o;let s=(o=t(n,r))==null?n.find(e=>e.orgId===r):o;s&&e.notify(s.id,i,a)}export{r as n,n as t};

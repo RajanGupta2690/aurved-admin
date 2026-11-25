@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-DzXWLEhs.js";var t=e();function n({children:e}){return(0,t.jsx)(`div`,{className:`mx-auto w-full max-w-[1400px] p-4 md:p-6 lg:p-8`,children:e})}export{n as t};
