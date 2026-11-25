@@ -20,7 +20,7 @@ export default function NotFoundPage({ standalone = false }: { standalone?: bool
   );
   if (!standalone) return <div className="mx-auto max-w-xl py-12">{body}</div>;
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-warm-50 p-6">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-app p-6">
       <BrandLogo size={56} decorative />
       <div className="w-full max-w-xl">{body}</div>
     </main>

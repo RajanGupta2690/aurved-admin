@@ -17,7 +17,7 @@ export default function SetupInstitutionPage() {
   const persona = personas.find((person) => person.id === prefs.personaId) ?? personas[0];
 
   return (
-    <div className="min-h-screen bg-warm-50">
+    <div className="min-h-screen bg-app">
       <header className="border-b border-warm-200 bg-white">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3">

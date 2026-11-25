@@ -14,7 +14,7 @@ import { BarChart, DonutChart, MetricCard } from '../../../shared/ui/Charts';
 import DataTable from '../../../shared/ui/DataTable';
 import type { Column } from '../../../shared/ui/DataTable';
 import { Alert, EmptyState } from '../../../shared/ui/Feedback';
-import { Card, HERO_BUTTON, HERO_BUTTON_QUIET, PageHero } from '../../../shared/ui/Layout';
+import { Breadcrumbs, Card, HERO_BUTTON, HERO_BUTTON_QUIET, PageHero } from '../../../shared/ui/Layout';
 import { useOrgData, useWorld } from '../hooks';
 import { currentRegion } from '../../../core/i18n/format';
 
@@ -87,6 +87,7 @@ export default function OrgDashboardPage() {
 
   return (
     <PageContainer>
+      <Breadcrumbs items={[{ label: 'Organization' }, { label: org.name }]} />
       <PageHero
         eyebrow="ORG-01"
         greeting={`Welcome back, ${persona.name}`}
